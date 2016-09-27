@@ -38,36 +38,26 @@ class Router implements LoggerAwareInterface
      */
     public function __invoke(RequestInterface $request)
     {
+        $matchedPath = null;
         foreach ($this->swagger['paths'] as $route => $pathItem) {
-            $matchResult = $this->matchPath($request, $route, $pathItem);
-            if ($matchResult === false) {
+            if (!$this->matchPath($request, $route, $pathItem)) {
                 continue;
             }
-            $request = $matchResult;
-
-            $method = strtolower($request->getMethod());
-            if (!array_key_exists($method, $pathItem)) {
-                throw new Exception('Path not found');
-            }
-            $operation = $pathItem[$method];
-
-            $this->logger->debug('Talus: routing matched, dispatching now');
-
-            // todo should verify that operationId exists
-            try {
-                // todo this could be operation-level
-                $controllerName = $pathItem['x-swagger-router-controller'];
-                $methodName = $operation['operationId'];
-            } catch (Exception $e) {
-                // todo handle straight functions
-                throw $e;
-            }
-
-            $controller = new $controllerName($this->container);
-            return $controller->$methodName($request, $response);
+            $matchedPath = $pathItem;
+            break;
+        }
+        if (!$matchedPath) {
+            throw new Exception('Not Found');
         }
 
-        throw new Exception('Path not found');
+        $method = strtolower($request->getMethod());
+        if (!array_key_exists($method, $pathItem)) {
+            throw new Exception('Method not allowed');
+        }
+        $operation = $matchedPath[$method];
+
+        // extract out path parameters and throw in withAttribute
+        // returns request object
     }
 
     /**
@@ -76,11 +66,10 @@ class Router implements LoggerAwareInterface
      * @param array $pathItem
      * @response boolean
      */
-    // todo a better response
     protected function matchPath(RequestInterface $request, $route, array $pathItem)
     {
         if ($request->getUri()->getPath() === $route) {
-            return $request;
+            return true;
         }
 
         // todo what are acceptable path param values, anyways?
@@ -91,6 +80,7 @@ class Router implements LoggerAwareInterface
 
         // loop da loop
         // todo feels weird that we pull operation out here and then do it again later
+        // todo this is borked
         $method = strtolower($request->getMethod());
         $operation = $pathItem[$method]; // todo invalid operations?
         foreach ($pathMatches[1] as $pathParam) {
