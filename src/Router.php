@@ -40,7 +40,7 @@ class Router implements LoggerAwareInterface
     {
         $matchedPath = null;
         foreach ($this->swagger['paths'] as $route => $pathItem) {
-            if (!$this->matchPath($request, $route, $pathItem)) {
+            if (!$this->matchPath($request, $route)) {
                 continue;
             }
             $matchedPath = $pathItem;
@@ -63,59 +63,23 @@ class Router implements LoggerAwareInterface
     /**
      * @param RequestInterface $request
      * @param string $route
-     * @param array $pathItem
      * @response boolean
      */
-    protected function matchPath(RequestInterface $request, $route, array $pathItem)
+    protected function matchPath(RequestInterface $request, $route)
     {
-        if ($request->getUri()->getPath() === $route) {
+        // todo what are acceptable path param values, anyways?
+        $isVariablePath = preg_match('/{[a-z_]+}/', $route);
+        if (!$isVariablePath && $request->getUri()->getPath() === $route) {
             return true;
         }
 
-        // todo what are acceptable path param values, anyways?
-        $isVariablePath = preg_match_all('/{([a-z_]+)}/', $route, $pathMatches);
-        if (!$isVariablePath) {
-            return false;
+        // todo how much do we care about strings vs integers, etc?
+        $variablePath = preg_replace('/({[a-z_]+})/', '(\w+)', $route);
+        $matchedVariablePath = preg_match($variablePath, $request->getUri()->getPath());
+        if ($matchedVariablePath) {
+            return true;
         }
 
-        // loop da loop
-        // todo feels weird that we pull operation out here and then do it again later
-        // todo this is borked
-        $method = strtolower($request->getMethod());
-        $operation = $pathItem[$method]; // todo invalid operations?
-        foreach ($pathMatches[1] as $pathParam) {
-            foreach ($operation['parameters'] as $parameter) {
-                if ($pathParam == $parameter['name']) {
-                    if ($parameter['type'] == 'string') {
-                        $pathKey = str_replace(
-                            '{' . $pathParam . '}',
-                            '(?P<' . $pathParam . '>\w+)',
-                            $route
-                        );
-                        continue 2;
-                    }
-                }
-            }
-            return false;
-        }
-
-        $matchedVariablePath = preg_match(
-            '@' . $pathKey . '@',
-            $request->getUri()->getPath(),
-            $pathMatches
-        );
-        if (!$matchedVariablePath) {
-            return false;
-        }
-
-        $pathMatches = array_filter($pathMatches, function ($key) {
-            return !is_numeric($key);
-        }, ARRAY_FILTER_USE_KEY);
-
-        foreach ($pathMatches as $key => $value) {
-            $request = $request->withAttribute($key, $value);
-        }
-
-        return $request;
+        return false;
     }
 }
