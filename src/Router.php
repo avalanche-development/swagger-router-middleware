@@ -8,7 +8,7 @@
  * Throws exception for unmatched request
  */
 
-namespace AvalancheDevelopment\Route;
+namespace AvalancheDevelopment\SwaggerRouter;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Log\LoggerAwareInterface;
