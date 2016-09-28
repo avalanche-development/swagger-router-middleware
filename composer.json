@@ -1,0 +1,23 @@
+{
+    "name": "avalanche-development/swagger-router",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "jacobemerick",
+            "email": "jpemeric@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.0",
+        "psr/log": "^1.0"
+    },
+    "require-dev": {
+        "codeclimate/php-test-reporter": "^0.3.2",
+        "phpunit/phpunit": "^5.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "AvalancheDevelopment\\SwaggerRouter\\": "src/"
+        }
+    }
+}
