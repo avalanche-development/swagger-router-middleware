@@ -47,12 +47,12 @@ class Router implements LoggerAwareInterface
             break;
         }
         if (!$matchedPath) {
-            throw new \Exception('Not Found');
+            throw new Exception\NotFound;
         }
 
         $method = strtolower($request->getMethod());
         if (!array_key_exists($method, $pathItem)) {
-            throw new \Exception('Method not allowed');
+            throw new Exception\MethodNotAllowed;
         }
         $operation = $matchedPath[$method];
 
