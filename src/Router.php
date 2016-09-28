@@ -47,17 +47,21 @@ class Router implements LoggerAwareInterface
             break;
         }
         if (!$matchedPath) {
-            throw new Exception('Not Found');
+            throw new \Exception('Not Found');
         }
 
         $method = strtolower($request->getMethod());
         if (!array_key_exists($method, $pathItem)) {
-            throw new Exception('Method not allowed');
+            throw new \Exception('Method not allowed');
         }
         $operation = $matchedPath[$method];
 
-        // extract out path parameters and throw in withAttribute
-        // returns request object
+        // todo not sold on this interface - may tweak it
+        return $request->withAttribute('swagger', [
+            'path' => $matchedPath,
+            'operation' => $operation,
+            'params' => $this->getParameters($request, $matchedPath, $operation),
+        ]);
     }
 
     /**
@@ -67,19 +71,29 @@ class Router implements LoggerAwareInterface
      */
     protected function matchPath(RequestInterface $request, $route)
     {
-        // todo what are acceptable path param values, anyways?
-        $isVariablePath = preg_match('/{[a-z_]+}/', $route);
+        $isVariablePath = strstr($route, '{') && strstr($route, '}');
         if (!$isVariablePath && $request->getUri()->getPath() === $route) {
             return true;
         }
 
         // todo how much do we care about strings vs integers, etc?
-        $variablePath = preg_replace('/({[a-z_]+})/', '(\w+)', $route);
+        $variablePath = preg_replace('/({[a-z_]+})/', '\w+', $route);
         $matchedVariablePath = preg_match($variablePath, $request->getUri()->getPath());
         if ($matchedVariablePath) {
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * @param RequestInterface $request
+     * @param array $pathItem
+     * @param array $operation
+     * @return array
+     */
+    protected function getParameters(RequestInterface $request, array $pathItem, array $operation)
+    {
+        return [];
     }
 }
