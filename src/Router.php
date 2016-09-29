@@ -30,6 +30,7 @@ class Router implements LoggerAwareInterface
     public function __construct(array $swagger)
     {
         $this->swagger = $swagger;
+        $this->logger = new NullLogger;
     }
 
     /**
