@@ -3,6 +3,7 @@
 namespace AvalancheDevelopment\SwaggerRouter;
 
 use PHPUnit_Framework_TestCase;
+use Psr\Http\Message\RequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\NullLogger;
 
@@ -14,14 +15,6 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = new Router([]);
 
         $this->assertInstanceOf(LoggerAwareInterface::class, $router);
-    }
-
-    /**
-     * @expectedException TypeError
-     */
-    public function testConstructErrorsWithoutSwagger()
-    {
-        $router = new Router;
     }
 
     public function testConstructSetsSwaggerParameter()
@@ -42,5 +35,25 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = new Router([]);
 
         $this->assertAttributeEquals($logger, 'logger', $router);
+    }
+
+    public function testMatchPathPassesMatchedNonVariablePath()
+    {
+        $this->markTestIncomplete();
+    }
+
+    public function testMatchPathFailsUnmatchedNonVariablePath()
+    {
+        $this->markTestIncomplete();
+    }
+
+    public function testMatchPathPassesMatchedVariablePath()
+    {
+        $this->markTestIncomplete();
+    }
+
+    public function testMatchPathFailsUnmatchedVariablePath()
+    {
+        $this->markTestIncomplete();
     }
 }
