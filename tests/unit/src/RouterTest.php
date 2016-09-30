@@ -4,8 +4,10 @@ namespace AvalancheDevelopment\SwaggerRouter;
 
 use PHPUnit_Framework_TestCase;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\NullLogger;
+use ReflectionClass;
 
 class RouterTest extends PHPUnit_Framework_TestCase
 {
@@ -39,7 +41,27 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
     public function testMatchPathPassesMatchedNonVariablePath()
     {
-        $this->markTestIncomplete();
+        $testPath = 'test-path';
+
+        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri->method('getPath')
+            ->willReturn('test-path');
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedMatchPath = $reflectedRouter->getMethod('matchPath');
+        $reflectedMatchPath->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedMatchPath->invokeArgs($router, [
+            $mockRequest,
+            $testPath,
+        ]);
+
+        $this->assertTrue($result);
     }
 
     public function testMatchPathFailsUnmatchedNonVariablePath()
