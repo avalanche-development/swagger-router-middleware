@@ -77,8 +77,8 @@ class Router implements LoggerAwareInterface
             return true;
         }
 
-        // todo how much do we care about strings vs integers, etc?
         $variablePath = preg_replace('/({[a-z_]+})/', '\w+', $route);
+        $variablePath = "@{$variablePath}@";
         $matchedVariablePath = preg_match($variablePath, $request->getUri()->getPath());
         if ($matchedVariablePath) {
             return true;

@@ -41,11 +41,11 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
     public function testMatchPathPassesMatchedNonVariablePath()
     {
-        $testPath = 'test-path';
+        $testPath = '/test-path';
 
         $mockUri = $this->createMock(UriInterface::class);
         $mockUri->method('getPath')
-            ->willReturn('test-path');
+            ->willReturn('/test-path');
 
         $mockRequest = $this->createMock(RequestInterface::class);
         $mockRequest->method('getUri')
@@ -66,7 +66,27 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
     public function testMatchPathFailsUnmatchedNonVariablePath()
     {
-        $this->markTestIncomplete();
+        $testPath = '/test-path';
+
+        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri->method('getPath')
+            ->willReturn('/not-test-path');
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedMatchPath = $reflectedRouter->getMethod('matchPath');
+        $reflectedMatchPath->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedMatchPath->invokeArgs($router, [
+            $mockRequest,
+            $testPath,
+        ]);
+
+        $this->assertFalse($result);
     }
 
     public function testMatchPathPassesMatchedVariablePath()
