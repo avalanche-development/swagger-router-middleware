@@ -91,11 +91,51 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
     public function testMatchPathPassesMatchedVariablePath()
     {
-        $this->markTestIncomplete();
+        $testPath = '/resource/{resource_id}';
+
+        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri->method('getPath')
+            ->willReturn('/resource/123');
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedMatchPath = $reflectedRouter->getMethod('matchPath');
+        $reflectedMatchPath->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedMatchPath->invokeArgs($router, [
+            $mockRequest,
+            $testPath,
+        ]);
+
+        $this->assertTrue($result);
     }
 
     public function testMatchPathFailsUnmatchedVariablePath()
     {
-        $this->markTestIncomplete();
+        $testPath = '/resource/{resource_id}';
+
+        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri->method('getPath')
+            ->willReturn('/other-resource/123');
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedMatchPath = $reflectedRouter->getMethod('matchPath');
+        $reflectedMatchPath->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedMatchPath->invokeArgs($router, [
+            $mockRequest,
+            $testPath,
+        ]);
+
+        $this->assertFalse($result);
     }
 }

@@ -78,7 +78,7 @@ class Router implements LoggerAwareInterface
         }
 
         $variablePath = preg_replace('/({[a-z_]+})/', '\w+', $route);
-        $variablePath = "@{$variablePath}@";
+        $variablePath = "@^{$variablePath}$@";
         $matchedVariablePath = preg_match($variablePath, $request->getUri()->getPath());
         if ($matchedVariablePath) {
             return true;
