@@ -57,11 +57,14 @@ class Router implements LoggerAwareInterface
         }
         $operation = $matchedPath[$method];
 
+        $parameters = $this->getParameters($request, $matchedPath, $operation);
+        // todo security would be cool here too
+
         // todo not sold on this interface - may tweak it
         return $request->withAttribute('swagger', [
             'path' => $matchedPath,
             'operation' => $operation,
-            'params' => $this->getParameters($request, $matchedPath, $operation),
+            'params' => $parameters,
         ]);
     }
 
@@ -95,6 +98,31 @@ class Router implements LoggerAwareInterface
      */
     protected function getParameters(RequestInterface $request, array $pathItem, array $operation)
     {
-        return [];
+        $expectedParameters = [];
+        if (array_key_exists('parameters', $pathItem)) {
+            foreach ($pathItem['parameters'] as $parameter) {
+                $key = $this->uniqueParameterKey($parameter);
+                $expectedParameters[$key] = $parameter;
+            }
+        }
+        if (array_key_exists('parameters', $operation)) {
+            foreach ($pathItem['parameters'] as $parameter) {
+                $key = $this->uniqueParameterKey($parameter);
+                $expectedParameters[$key] = $parameter;
+            }
+        }
+
+        // todo fetch parameter value based on 'in' value
+
+        return $expectedParameters;
+    }
+
+    /**
+     * @param array $parameter
+     * @return string
+     */
+    protected function uniqueParameterKey(array $parameter)
+    {
+        return "{$parameter['name']}-{$parameter['in']}";
     }
 }
