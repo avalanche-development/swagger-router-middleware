@@ -57,7 +57,8 @@ class Router implements LoggerAwareInterface
         }
         $operation = $matchedPath[$method];
 
-        $parameters = $this->getParameters($request, $matchedPath, $operation);
+        $parameters = $this->getParameters($matchedPath, $operation);
+        $parameters = $this->hydrateParameterValues($request, $parameters);
         // todo security would be cool here too
 
         // todo not sold on this interface - may tweak it
@@ -91,30 +92,27 @@ class Router implements LoggerAwareInterface
     }
 
     /**
-     * @param RequestInterface $request
      * @param array $pathItem
      * @param array $operation
      * @return array
      */
-    protected function getParameters(RequestInterface $request, array $pathItem, array $operation)
+    protected function getParameters(array $pathItem, array $operation)
     {
-        $expectedParameters = [];
+        $uniqueParameters = [];
         if (array_key_exists('parameters', $pathItem)) {
             foreach ($pathItem['parameters'] as $parameter) {
                 $key = $this->uniqueParameterKey($parameter);
-                $expectedParameters[$key] = $parameter;
+                $uniqueParameters[$key] = $parameter;
             }
         }
         if (array_key_exists('parameters', $operation)) {
             foreach ($pathItem['parameters'] as $parameter) {
                 $key = $this->uniqueParameterKey($parameter);
-                $expectedParameters[$key] = $parameter;
+                $uniqueParameters[$key] = $parameter;
             }
         }
 
-        // todo fetch parameter value based on 'in' value
-
-        return $expectedParameters;
+        return array_values($uniqueParameters);
     }
 
     /**
@@ -124,5 +122,32 @@ class Router implements LoggerAwareInterface
     protected function uniqueParameterKey(array $parameter)
     {
         return "{$parameter['name']}-{$parameter['in']}";
+    }
+
+    /**
+     * @param RequestInterface $request
+     * @param array $parameters
+     * @return array
+     */
+    protected function hydrateParameterValues(RequestInterface $request, array $parameters)
+    {
+        foreach ($parameters as $key => $parameter)
+        {
+            $value = $this->getParameterValue($request, $parameter['name'], $parameter['in']);
+            $parameters[$key]['value'] = $value;
+        }
+
+        return $parameters;
+    }
+
+    /**
+     * @param RequestInterface $request
+     * @param string $name
+     * @param string $location
+     * @return mixed
+     */
+    protected function getParameterValue(RequestInterface $request, $name, $location)
+    {
+        return;
     }
 }
