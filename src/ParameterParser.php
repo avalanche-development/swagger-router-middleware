@@ -37,11 +37,45 @@ class ParameterParser
             $value = $parameter['default'];
         }
 
+        // todo break apart arrays
+        // todo cast into respective data types
         return $value;
     }
 
-    protected function getQueryValue(RequestInterface $request, $name) {}
-    protected function getHeaderValue(RequestInterface $request, $name) {}
+    /**
+     * @param RequestInterface $request
+     * @param string $name
+     * @returns mixed
+     */
+    protected function getQueryValue(RequestInterface $request, $name)
+    {
+        parse_str($request->getUri()->getQuery(), $query);
+        if (!array_key_exists($name, $query)) {
+            return;
+        }
+
+        return $query[$name];
+    }
+
+    /**
+     * @param RequestInterface $request
+     * @param string $name
+     * @returns mixed
+     */
+    protected function getHeaderValue(RequestInterface $request, $name)
+    {
+        $headers = $request->getHeaders();
+        if (!array_key_exists($name, $headers)) {
+            return;
+        }
+
+        if (count($headers[$name]) === 1) {
+            return current($headers[$name]);
+        }
+
+        return $headers[$name]; // todo this will break array parser
+    }
+
     protected function getPathValue(RequestInterface $request, $name) {}
     protected function getFormDataValue(RequestInterface $request, $name) {}
     protected function getBodyValue(RequestInterface $request, $name) {}
