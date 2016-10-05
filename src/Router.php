@@ -147,6 +147,7 @@ class Router implements LoggerAwareInterface
      */
     protected function getParameterValue(RequestInterface $request, $parameter)
     {
-        return (new ParameterParser)($request, $parameter);
+        $parser = new ParameterParser;
+        return $parser($request, $parameter);
     }
 }
