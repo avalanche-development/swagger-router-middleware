@@ -26,22 +26,22 @@ class ParameterParser implements LoggerAwareInterface
     public function __invoke(RequestInterface $request, array $parameter)
     {
         switch ($parameter['in']) {
-            case 'query' :
+            case 'query':
                 $value = $this->getQueryValue($request, $parameter['name']);
                 break;
-            case 'header' :
+            case 'header':
                 $value = $this->getHeaderValue($request, $parameter['name']);
                 break;
-            case 'path' :
+            case 'path':
                 $value = $this->getPathValue($request, $parameter['name']);
                 break;
-            case 'formData' :
+            case 'formData':
                 $value = $this->getFormDataValue($request, $parameter['name']);
                 break;
-            case 'body' :
+            case 'body':
                 $value = $this->getBodyValue($request, $parameter['name']);
                 break;
-            default :
+            default:
                 throw new Exception();
                 break;
         }
