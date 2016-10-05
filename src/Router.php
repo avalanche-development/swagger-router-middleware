@@ -133,7 +133,7 @@ class Router implements LoggerAwareInterface
     {
         foreach ($parameters as $key => $parameter)
         {
-            $value = $this->getParameterValue($request, $parameter['name'], $parameter['in']);
+            $value = $this->getParameterValue($request, $parameter);
             $parameters[$key]['value'] = $value;
         }
 
@@ -142,12 +142,11 @@ class Router implements LoggerAwareInterface
 
     /**
      * @param RequestInterface $request
-     * @param string $name
-     * @param string $location
+     * @param array $parameter
      * @return mixed
      */
-    protected function getParameterValue(RequestInterface $request, $name, $location)
+    protected function getParameterValue(RequestInterface $request, $parameter)
     {
-        return;
+        return (new ParameterParser)($request, $parameter);
     }
 }

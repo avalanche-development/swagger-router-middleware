@@ -2,8 +2,21 @@
 
 namespace AvalancheDevelopment\SwaggerRouter;
 
-class ParameterParser
+use Psr\Http\Message\RequestInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+
+class ParameterParser implements LoggerAwareInterface
 {
+
+    use LoggerAwareTrait;
+
+    public function __construct()
+    {
+        $this->logger = new NullLogger;
+    }
 
     /**
      * @param RequestInterface $request
