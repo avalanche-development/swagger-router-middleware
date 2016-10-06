@@ -45,7 +45,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $parameterParser = new ParameterParser;
         $result = $reflectedGetQueryValue->invokeArgs($parameterParser, [
             $mockRequest,
-            'other_variable',
+            [ 'name' => 'other_variable' ],
         ]);
 
         $this->assertNull($result);
@@ -68,7 +68,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $parameterParser = new ParameterParser;
         $result = $reflectedGetQueryValue->invokeArgs($parameterParser, [
             $mockRequest,
-            'some_variable',
+            [ 'name' => 'some_variable' ],
         ]);
 
         $this->assertEquals('value', $result);
@@ -89,7 +89,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $parameterParser = new ParameterParser;
         $result = $reflectedGetHeaderValue->invokeArgs($parameterParser, [
             $mockRequest,
-            'Other-Header',
+            [ 'name' => 'Other-Header' ],
         ]);
 
         $this->assertNull($result);
@@ -112,7 +112,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $parameterParser = new ParameterParser;
         $result = $reflectedGetHeaderValue->invokeArgs($parameterParser, [
             $mockRequest,
-            'Some-Header',
+            [ 'name' => 'Some-Header' ],
         ]);
 
         $this->assertEquals($headerValue, $result);
@@ -139,7 +139,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $parameterParser = new ParameterParser;
         $result = $reflectedGetHeaderValue->invokeArgs($parameterParser, [
             $mockRequest,
-            'Some-Header',
+            [ 'name' => 'Some-Header' ],
         ]);
 
         $this->assertEquals($headerValue, $result);

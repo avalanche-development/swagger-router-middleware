@@ -27,19 +27,19 @@ class ParameterParser implements LoggerAwareInterface
     {
         switch ($parameter['in']) {
             case 'query':
-                $value = $this->getQueryValue($request, $parameter['name']);
+                $value = $this->getQueryValue($request, $parameter);
                 break;
             case 'header':
-                $value = $this->getHeaderValue($request, $parameter['name']);
+                $value = $this->getHeaderValue($request, $parameter);
                 break;
             case 'path':
-                $value = $this->getPathValue($request, $parameter['name']);
+                $value = $this->getPathValue($request, $parameter);
                 break;
             case 'formData':
-                $value = $this->getFormDataValue($request, $parameter['name']);
+                $value = $this->getFormDataValue($request, $parameter);
                 break;
             case 'body':
-                $value = $this->getBodyValue($request, $parameter['name']);
+                $value = $this->getBodyValue($request, $parameter);
                 break;
             default:
                 throw new Exception();
@@ -57,39 +57,39 @@ class ParameterParser implements LoggerAwareInterface
 
     /**
      * @param RequestInterface $request
-     * @param string $name
+     * @param array $parameter
      * @returns mixed
      */
-    protected function getQueryValue(RequestInterface $request, $name)
+    protected function getQueryValue(RequestInterface $request, array $parameter)
     {
         parse_str($request->getUri()->getQuery(), $query);
-        if (!array_key_exists($name, $query)) {
+        if (!array_key_exists($parameter['name'], $query)) {
             return;
         }
 
-        return $query[$name];
+        return $query[$parameter['name']];
     }
 
     /**
      * @param RequestInterface $request
-     * @param string $name
+     * @param array $parameter
      * @returns mixed
      */
-    protected function getHeaderValue(RequestInterface $request, $name)
+    protected function getHeaderValue(RequestInterface $request, $parameter)
     {
         $headers = $request->getHeaders();
-        if (!array_key_exists($name, $headers)) {
+        if (!array_key_exists($parameter['name'], $headers)) {
             return;
         }
 
-        if (count($headers[$name]) === 1) {
-            return current($headers[$name]);
+        if (count($headers[$parameter['name']]) === 1) {
+            return current($headers[$parameter['name']]);
         }
 
-        return $headers[$name]; // todo this will break array parser
+        return $headers[$parameter['name']];
     }
 
-    protected function getPathValue(RequestInterface $request, $name) {}
-    protected function getFormDataValue(RequestInterface $request, $name) {}
-    protected function getBodyValue(RequestInterface $request, $name) {}
+    protected function getPathValue(RequestInterface $request, $parameter) {}
+    protected function getFormDataValue(RequestInterface $request, $parameter) {}
+    protected function getBodyValue(RequestInterface $request, $parameter) {}
 }
