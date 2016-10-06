@@ -80,7 +80,7 @@ class ParameterParser implements LoggerAwareInterface
      * @param array $parameter
      * @returns mixed
      */
-    protected function getHeaderValue(RequestInterface $request, $parameter)
+    protected function getHeaderValue(RequestInterface $request, array $parameter)
     {
         $headers = $request->getHeaders();
         if (!array_key_exists($parameter['name'], $headers)) {
@@ -98,7 +98,22 @@ class ParameterParser implements LoggerAwareInterface
     protected function getFormDataValue(RequestInterface $request, $parameter) {}
     protected function getBodyValue(RequestInterface $request, $parameter) {}
 
+    /**
+     * @param mixed $value
+     * @param array $parameter
+     * @return array
+     */
     protected function explodeValue($value, array $parameter)
+    {
+        $delimiter = $this->getDelimiter($parameter);
+        return preg_split("@{$delimiter}@", $value);
+    }
+
+    /**
+     * @param array $parameter
+     * @return string
+     */
+    protected function getDelimiter(array $parameter)
     {
         $collectionFormat = 'csv';
         if (isset($parameter['collectionFormat'])) {
@@ -126,6 +141,6 @@ class ParameterParser implements LoggerAwareInterface
                 break;
         }
 
-        return preg_split("@{$delimiter}@", $value);
+        return $delimiter;
     }
 }

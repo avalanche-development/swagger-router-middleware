@@ -77,6 +77,46 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('value', $result);
     }
 
+    public function testGetQueryValueReturnsExplodedValueIfMatched()
+    {
+        $parameter = [
+            'name' => 'some_variable',
+            'type' => 'array',
+        ];
+
+        $value = [
+            'some-value',
+            'some-other-value',
+        ];
+
+        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri->method('getQuery')
+            ->willReturn('some_variable=value');
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetQueryValue = $reflectedParameterParser->getMethod('getQueryValue');
+        $reflectedGetQueryValue->setAccessible(true);
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'explodeValue' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('explodeValue')
+            ->with('value', $parameter)
+            ->willReturn($value);
+
+        $result = $reflectedGetQueryValue->invokeArgs($parameterParser, [
+            $mockRequest,
+            $parameter,
+        ]);
+
+        $this->assertEquals($value, $result);
+    }
+
     public function testGetHeaderValueReturnsNullIfUnmatched()
     {
         $mockRequest = $this->createMock(RequestInterface::class);
