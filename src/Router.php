@@ -131,23 +131,10 @@ class Router implements LoggerAwareInterface
      */
     protected function hydrateParameterValues(RequestInterface $request, array $parameters)
     {
-        foreach ($parameters as $key => $parameter)
-        {
-            $value = $this->getParameterValue($request, $parameter);
-            $parameters[$key]['value'] = $value;
-        }
-
-        return $parameters;
-    }
-
-    /**
-     * @param RequestInterface $request
-     * @param array $parameter
-     * @return mixed
-     */
-    protected function getParameterValue(RequestInterface $request, $parameter)
-    {
         $parser = new ParameterParser;
-        return $parser($request, $parameter);
+        return array_map(function ($parameter) use ($request, $parser) {
+            $parameter['value'] = $parser($request, $parameter);
+            return $parameter;
+        });
     }
 }
