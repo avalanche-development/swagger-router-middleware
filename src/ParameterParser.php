@@ -50,7 +50,6 @@ class ParameterParser implements LoggerAwareInterface
             $value = $parameter['default'];
         }
 
-        // todo break apart arrays
         // todo cast into respective data types
         return $value;
     }
@@ -67,7 +66,13 @@ class ParameterParser implements LoggerAwareInterface
             return;
         }
 
-        return $query[$parameter['name']];
+        $value = $query[$parameter['name']];
+        if ($parameter['type'] === 'array') {
+            // todo can we have nested arrays? gosh, I hope not
+            $value = $this->explodeValue($value, $parameter);
+        }
+
+        return $value;
     }
 
     /**
@@ -82,7 +87,7 @@ class ParameterParser implements LoggerAwareInterface
             return;
         }
 
-        if (count($headers[$parameter['name']]) === 1) {
+        if ($parameter['type'] !== 'array') {
             return current($headers[$parameter['name']]);
         }
 
@@ -92,4 +97,35 @@ class ParameterParser implements LoggerAwareInterface
     protected function getPathValue(RequestInterface $request, $parameter) {}
     protected function getFormDataValue(RequestInterface $request, $parameter) {}
     protected function getBodyValue(RequestInterface $request, $parameter) {}
+
+    protected function explodeValue($value, array $parameter)
+    {
+        $collectionFormat = 'csv';
+        if (isset($parameter['collectionFormat'])) {
+            $collectionFormat = $parameter['collectionFormat'];
+        }
+
+        switch ($collectionFormat) {
+            case 'csv':
+                $delimiter = ',';
+                break;
+            case 'ssv':
+                $delimiter = '\s';
+                break;
+            case 'tsv':
+                $delimiter = '\t';
+                break;
+            case 'pipes':
+                $delimiter = '|';
+                break;
+            case 'multi':
+                throw new \Exception('not sure how this will work yet');
+                break;
+            default:
+                $delimiter = ',';
+                break;
+        }
+
+        return preg_split("@{$delimiter}@", $value);
+    }
 }
