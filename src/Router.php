@@ -58,7 +58,7 @@ class Router implements LoggerAwareInterface
         $operation = $matchedPath[$method];
 
         $parameters = $this->getParameters($matchedPath, $operation);
-        $parameters = $this->hydrateParameterValues($request, $parameters);
+        $parameters = $this->hydrateParameterValues($request, $parameters, key($matchedPath));
         // todo security would be cool here too
 
         // todo not sold on this interface - may tweak it
@@ -127,13 +127,14 @@ class Router implements LoggerAwareInterface
     /**
      * @param RequestInterface $request
      * @param array $parameters
+     * @param string $route
      * @return array
      */
-    protected function hydrateParameterValues(RequestInterface $request, array $parameters)
+    protected function hydrateParameterValues(RequestInterface $request, array $parameters, $route)
     {
         $parser = new ParameterParser;
-        return array_map(function ($parameter) use ($request, $parser) {
-            $parameter['value'] = $parser($request, $parameter);
+        return array_map(function ($parameter) use ($request, $route, $parser) {
+            $parameter['value'] = $parser($request, $parameter, $route);
             return $parameter;
         });
     }

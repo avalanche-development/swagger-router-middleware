@@ -21,6 +21,7 @@ class ParameterParser implements LoggerAwareInterface
     /**
      * @param RequestInterface $request
      * @param array $parameter
+     * @param string $route
      * @return mixed
      */
     public function __invoke(RequestInterface $request, array $parameter)
@@ -33,7 +34,7 @@ class ParameterParser implements LoggerAwareInterface
                 $value = $this->getHeaderValue($request, $parameter);
                 break;
             case 'path':
-                $value = $this->getPathValue($request, $parameter);
+                $value = $this->getPathValue($request, $parameter, $route);
                 break;
             case 'formData':
                 $value = $this->getFormDataValue($request, $parameter);
@@ -94,9 +95,51 @@ class ParameterParser implements LoggerAwareInterface
         return $headers[$parameter['name']];
     }
 
-    protected function getPathValue(RequestInterface $request, $parameter) {}
-    protected function getFormDataValue(RequestInterface $request, $parameter) {}
-    protected function getBodyValue(RequestInterface $request, $parameter) {}
+    /**
+     * @param RequestInterface $request
+     * @param array $parameter
+     * @param string $route
+     * @returns mixed
+     */
+    protected function getPathValue(RequestInterface $request, array $parameter, $route)
+    {
+        $path = $request->getUri()->getPath();
+        $key = str_replace(
+            '{' . $parameter['name'] . '}',
+            '(?P<' . $parameter['name'] . '>[^/]+)',
+            $route
+        );
+        $key = "@{$key}@";
+
+        if (!preg_match($key, $path, $pathMatches)) {
+            return;
+        }
+
+        $value = $pathMatches[$parameter['name']];
+        if ($parameter['type'] === 'array') {
+            $value = $this->explodeValue($value, $parameter);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param RequestInterface $request
+     * @param array $parameter
+     * @returns mixed
+     */
+    protected function getFormDataValue(RequestInterface $request, array $parameter)
+    {
+    }
+
+    /**
+     * @param RequestInterface $request
+     * @param array $parameter
+     * @returns mixed
+     */
+    protected function getBodyValue(RequestInterface $request, array $parameter)
+    {
+    }
 
     /**
      * @param mixed $value
