@@ -37,13 +37,13 @@ class ParameterParser implements LoggerAwareInterface
                 $value = $this->getPathValue($request, $parameter, $route);
                 break;
             case 'formData':
-                $value = $this->getFormDataValue($request, $parameter);
+                throw new \Exception('not yet implemented');
                 break;
             case 'body':
-                $value = $this->getBodyValue($request, $parameter);
+                throw new \Exception('not yet implemented');
                 break;
             default:
-                throw new Exception();
+                throw new \Exception('invalid parameter type');
                 break;
         }
 
@@ -124,24 +124,6 @@ class ParameterParser implements LoggerAwareInterface
     }
 
     /**
-     * @param RequestInterface $request
-     * @param array $parameter
-     * @returns mixed
-     */
-    protected function getFormDataValue(RequestInterface $request, array $parameter)
-    {
-    }
-
-    /**
-     * @param RequestInterface $request
-     * @param array $parameter
-     * @returns mixed
-     */
-    protected function getBodyValue(RequestInterface $request, array $parameter)
-    {
-    }
-
-    /**
      * @param mixed $value
      * @param array $parameter
      * @return array
@@ -180,7 +162,7 @@ class ParameterParser implements LoggerAwareInterface
                 throw new \Exception('not sure how this will work yet');
                 break;
             default:
-                $delimiter = ',';
+                throw new \Exception('invalid collection format value');
                 break;
         }
 

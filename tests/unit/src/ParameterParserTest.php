@@ -382,6 +382,10 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $result = $reflectedGetDelimiter->invokeArgs($parameterParser, [[]]);
     }
 
+    /**
+     * @expectedException Exception
+     * @expectedException invalid collectionFormat value
+     */
     public function testGetDelimiterReturnsCsvForUnknowns()
     {
         $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
@@ -393,7 +397,5 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
             $parameterParser,
             [[ 'collectionFormat' => 'invalid' ]]
         );
-
-        $this->assertEquals(',', $result);
     }
 }
