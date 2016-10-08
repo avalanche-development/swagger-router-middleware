@@ -274,4 +274,126 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
             '5678',
         ], $result);
     }
+
+    public function testExplodeValue()
+    {
+        $parameter = [
+            'collectionFormat' => 'csv',
+        ];
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedExplodeValue = $reflectedParameterParser->getMethod('explodeValue');
+        $reflectedExplodeValue->setAccessible(true);
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getDelimiter' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('getDelimiter')
+            ->with($parameter)
+            ->willReturn(',');
+
+        $result = $reflectedExplodeValue->invokeArgs(
+            $parameterParser,
+            [
+                'value1,value2',
+                $parameter,
+            ]
+        );
+
+        $this->assertEquals([
+            'value1',
+            'value2',
+        ], $result);
+    }
+
+    public function testGetDelimiterHandlesCsv()
+    {
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetDelimiter = $reflectedParameterParser->getMethod('getDelimiter');
+        $reflectedGetDelimiter->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetDelimiter->invokeArgs(
+            $parameterParser,
+            [[ 'collectionFormat' => 'csv' ]]
+        );
+
+        $this->assertEquals(',', $result);
+    }
+
+    public function testGetDelimiterHandlesSsv()
+    {
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetDelimiter = $reflectedParameterParser->getMethod('getDelimiter');
+        $reflectedGetDelimiter->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetDelimiter->invokeArgs(
+            $parameterParser,
+            [[ 'collectionFormat' => 'ssv' ]]
+        );
+
+        $this->assertEquals('\s', $result);
+    }
+
+    public function testGetDelimiterHandlesTsv()
+    {
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetDelimiter = $reflectedParameterParser->getMethod('getDelimiter');
+        $reflectedGetDelimiter->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetDelimiter->invokeArgs(
+            $parameterParser,
+            [[ 'collectionFormat' => 'tsv' ]]
+        );
+
+        $this->assertEquals('\t', $result);
+    }
+
+    public function testGetDelimiterHandlesPipes()
+    {
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetDelimiter = $reflectedParameterParser->getMethod('getDelimiter');
+        $reflectedGetDelimiter->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetDelimiter->invokeArgs(
+            $parameterParser,
+            [[ 'collectionFormat' => 'pipes' ]]
+        );
+
+        $this->assertEquals('|', $result);
+    }
+
+    public function testGetDelimiterHandlesMulti()
+    {
+        $this->markTestIncomplete('Still not sure how to handle multi');
+    }
+
+    public function testGetDelimiterDefaultsToCsv()
+    {
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetDelimiter = $reflectedParameterParser->getMethod('getDelimiter');
+        $reflectedGetDelimiter->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetDelimiter->invokeArgs($parameterParser, [[]]);
+    }
+
+    public function testGetDelimiterReturnsCsvForUnknowns()
+    {
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetDelimiter = $reflectedParameterParser->getMethod('getDelimiter');
+        $reflectedGetDelimiter->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetDelimiter->invokeArgs(
+            $parameterParser,
+            [[ 'collectionFormat' => 'invalid' ]]
+        );
+
+        $this->assertEquals(',', $result);
+    }
 }
