@@ -28,6 +28,111 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $this->assertAttributeEquals($logger, 'logger', $router);
     }
 
+    public function testInvokeHandlesQueryParameter()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $parameter = [ 'in' => 'query' ];
+        $route = '/some-route';
+        $value = 'some value';
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getQueryValue' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('getQueryValue')
+            ->with($mockRequest, $parameter)
+            ->willReturn($value);
+
+        $result = $parameterParser($mockRequest, $parameter, $route);
+
+        $this->assertEquals($value, $result);
+    }
+
+    public function testInvokeHandlesHeaderParameter()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $parameter = [ 'in' => 'header' ];
+        $route = '/some-route';
+        $value = 'some value';
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getHeaderValue' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('getHeaderValue')
+            ->with($mockRequest, $parameter)
+            ->willReturn($value);
+
+        $result = $parameterParser($mockRequest, $parameter, $route);
+
+        $this->assertEquals($value, $result);
+    }
+
+    public function testInvokeHandlesPathParameter()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $parameter = [ 'in' => 'path' ];
+        $route = '/some-route';
+        $value = 'some value';
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getPathValue' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('getPathValue')
+            ->with($mockRequest, $parameter, $route)
+            ->willReturn($value);
+
+        $result = $parameterParser($mockRequest, $parameter, $route);
+
+        $this->assertEquals($value, $result);
+    }
+
+    public function testInvokeHandlesFormParameter()
+    {
+        $this->markTestIncomplete('not yet implemented');
+    }
+
+    public function testInvokeHandlesBodyParameter()
+    {
+        $this->markTestIncomplete('not yet implemented');
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage invalid parameter type
+     */
+    public function testInvokeBailsOnInvalidParameterType()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $parameter = [ 'in' => 'some type' ];
+        $route = '/some-route';
+
+        $parameterParser = new ParameterParser;
+        $parameterParser($mockRequest, $parameter, $route);
+    }
+
+    public function testInvokeReturnsDefaultValue()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $parameter = [
+            'in' => 'path',
+            'default' => 'some default value',
+        ];
+        $route = '/some-route';
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getPathValue' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('getPathValue')
+            ->with($mockRequest, $parameter, $route);
+
+        $result = $parameterParser($mockRequest, $parameter, $route);
+
+        $this->assertEquals($parameter['default'], $result);
+    }
+
     public function testGetQueryValueReturnsNullIfUnmatched()
     {
         $mockUri = $this->createMock(UriInterface::class);
@@ -393,7 +498,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedGetDelimiter->setAccessible(true);
 
         $parameterParser = new ParameterParser;
-        $result = $reflectedGetDelimiter->invokeArgs(
+        $reflectedGetDelimiter->invokeArgs(
             $parameterParser,
             [[ 'collectionFormat' => 'invalid' ]]
         );

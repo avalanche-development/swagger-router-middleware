@@ -24,7 +24,7 @@ class ParameterParser implements LoggerAwareInterface
      * @param string $route
      * @return mixed
      */
-    public function __invoke(RequestInterface $request, array $parameter)
+    public function __invoke(RequestInterface $request, array $parameter, $route)
     {
         switch ($parameter['in']) {
             case 'query':
