@@ -138,4 +138,73 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $this->assertFalse($result);
     }
+
+    public function testHydrateParameterValuesHandlesNoParameters()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+
+        $mockParser = $this->createMock(ParameterParser::class);
+        $mockParser->expects($this->never())
+            ->method('__invoke');
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedHydrateParameterValues = $reflectedRouter->getMethod('hydrateParameterValues');
+        $reflectedHydrateParameterValues->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedHydrateParameterValues->invokeArgs($router, [
+            $mockParser,
+            $mockRequest,
+            [],
+            '',
+        ]);
+    }
+
+    public function testHydrateParameterValuesHandlesMultipleParameters()
+    {
+        $route = 'some route';
+        $parameters = [
+            [ 'name' => 'parameter one' ],
+            [ 'name' => 'parameter two' ],
+        ];
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+
+        $valueMap = [
+            [ $mockRequest, $parameters[0], $route, 'value one' ],
+            [ $mockRequest, $parameters[1], $route, 'value two' ],
+        ];
+
+        $mockParser = $this->createMock(ParameterParser::class);
+        $mockParser->expects($this->exactly(2))
+            ->method('__invoke')
+            ->withConsecutive(
+                [ $mockRequest, $parameters[0], $route ],
+                [ $mockRequest, $parameters[1], $route ]
+            )
+            ->will($this->returnValueMap($valueMap));
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedHydrateParameterValues = $reflectedRouter->getMethod('hydrateParameterValues');
+        $reflectedHydrateParameterValues->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedHydrateParameterValues->invokeArgs($router, [
+            $mockParser,
+            $mockRequest,
+            $parameters,
+            $route,
+        ]);
+
+        $this->assertEquals([
+            [
+                'name' => 'parameter one',
+                'value' => 'value one',
+            ],
+            [
+                'name' => 'parameter two',
+                'value' => 'value two',
+            ],
+        ], $result);
+    }
 }
