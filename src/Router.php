@@ -108,7 +108,7 @@ class Router implements LoggerAwareInterface
             }
         }
         if (array_key_exists('parameters', $operation)) {
-            foreach ($pathItem['parameters'] as $parameter) {
+            foreach ($operation['parameters'] as $parameter) {
                 $key = $this->uniqueParameterKey($parameter);
                 $uniqueParameters[$key] = $parameter;
             }
