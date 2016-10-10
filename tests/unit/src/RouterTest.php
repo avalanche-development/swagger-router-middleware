@@ -139,6 +139,23 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($result);
     }
 
+    public function testUniqueParameterKey()
+    {
+        $parameter = [
+            'name' => 'some parameter',
+            'in' => 'path',
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedUniqueParameterKey = $reflectedRouter->getMethod('uniqueParameterKey');
+        $reflectedUniqueParameterKey->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedUniqueParameterKey->invokeArgs($router, [ $parameter ]);
+
+        $this->assertEquals("{$parameter['name']}-{$parameter['in']}", $result);
+    }
+
     public function testHydrateParameterValuesHandlesNoParameters()
     {
         $mockRequest = $this->createMock(RequestInterface::class);
@@ -158,6 +175,8 @@ class RouterTest extends PHPUnit_Framework_TestCase
             [],
             '',
         ]);
+
+        $this->assertEquals([], $result);
     }
 
     public function testHydrateParameterValuesHandlesMultipleParameters()
