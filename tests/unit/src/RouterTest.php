@@ -39,6 +39,49 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $this->assertAttributeEquals($logger, 'logger', $router);
     }
 
+    /**
+     * @expectedException AvalancheDevelopment\SwaggerRouter\Exception\NotFound
+     */
+    public function testInvokationBailsOnEmptyPath()
+    {
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([ 'matchPath' ])
+            ->getMock();
+        $router->expects($this->never())
+            ->method('matchPath');
+
+        $reflectedSwagger->setValue($router, [ 'paths' => [] ]);
+
+        $router($mockRequest);
+    }
+
+    public function testInvokationBailsOnUnmatchedPaths()
+    {
+    }
+
+    public function testInvokationReturnsMatchedPath()
+    {
+    }
+
+    public function testInvokationBailsOnUnmatchedOperation()
+    {
+    }
+
+    public function testInvokationReturnsMatchedOperation()
+    {
+    }
+
+    public function testInvokationReturnsParameters()
+    {
+    }
+
     public function testMatchPathPassesMatchedNonVariablePath()
     {
         $testPath = '/test-path';
