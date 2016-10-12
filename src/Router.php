@@ -11,6 +11,7 @@
 namespace AvalancheDevelopment\SwaggerRouter;
 
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -34,10 +35,10 @@ class Router implements LoggerAwareInterface
     }
 
     /**
-     * @param RequestInterface $request
-     * @return RequestInterface
+     * @param ServerRequestInterface $request
+     * @return ServerRequestInterface
      */
-    public function __invoke(RequestInterface $request)
+    public function __invoke(ServerRequestInterface $request)
     {
         $matchedPath = null;
         foreach ($this->swagger['paths'] as $route => $pathItem) {
