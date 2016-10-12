@@ -90,8 +90,43 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router($mockRequest);
     }
 
+    /**
+     * @expectedException AvalancheDevelopment\SwaggerRouter\Exception\MethodNotAllowed
+     */
     public function testInvokationBailsOnUnmatchedOperation()
     {
+        $path = [
+            '/test-path' => [
+                'get' => [
+                    'description' => 'Some operation',
+                    'responses' => [],
+                ],
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('POST');
+        $mockRequest->expects($this->never())
+            ->method('withAttribute');
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([ 'matchPath' ])
+            ->getMock();
+        $router->expects($this->once())
+            ->method('matchPath')
+            ->with($mockRequest, key($path))
+            ->willReturn(true);
+
+        $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
+
+        $router($mockRequest);
     }
 
     public function testInvokationReturnsMatchedOperation()
@@ -140,6 +175,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
     public function testInvokationReturnsParameters()
     {
+        $this->markTestIncomplete();
     }
 
     public function testMatchPathPassesMatchedNonVariablePath()
