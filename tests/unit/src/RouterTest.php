@@ -159,12 +159,25 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
-            ->setMethods([ 'matchPath' ])
+            ->setMethods([ 'matchPath', 'getParameters', 'hydrateParameterValues' ])
             ->getMock();
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, key($path))
             ->willReturn(true);
+        $router->expects($this->once())
+            ->method('getParameters')
+            ->with(current($path), current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('hydrateParameterValues')
+            ->with(
+                $this->isInstanceOf(ParameterParser::class),
+                $mockRequest,
+                [],
+                key($path)
+            )
+            ->willReturn([]);
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
@@ -175,7 +188,64 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
     public function testInvokationReturnsParameters()
     {
-        $this->markTestIncomplete();
+        $path = [
+            '/test-path' => [
+                'get' => [
+                    'description' => 'Some operation',
+                    'responses' => [],
+                ],
+            ],
+        ];
+
+        $parameter = [
+            'name' => 'id',
+            'in' => 'query',
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('GET');
+        $mockRequest->expects($this->once())
+            ->method('withAttribute')
+            ->with('swagger', [
+                'path' => current($path),
+                'operation' => current($path)['get'],
+                'params' => [ $parameter ],
+            ])
+            ->will($this->returnSelf());
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([ 'matchPath', 'getParameters', 'hydrateParameterValues' ])
+            ->getMock();
+        $router->expects($this->once())
+            ->method('matchPath')
+            ->with($mockRequest, key($path))
+            ->willReturn(true);
+        $router->expects($this->once())
+            ->method('getParameters')
+            ->with(current($path), current($path)['get'])
+            ->willReturn([ $parameter ]);
+        $router->expects($this->once())
+            ->method('hydrateParameterValues')
+            ->with(
+                $this->isInstanceOf(ParameterParser::class),
+                $mockRequest,
+                [ $parameter ],
+                key($path)
+            )
+            ->willReturn([ $parameter ]);
+
+        $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
+
+        $result = $router($mockRequest);
+
+        $this->assertInstanceOf(ServerRequestInterface::class, $result);
     }
 
     public function testMatchPathPassesMatchedNonVariablePath()

@@ -40,13 +40,12 @@ class Router implements LoggerAwareInterface
      */
     public function __invoke(ServerRequestInterface $request)
     {
-        $matchedPath = null;
+        $matchedPath = false;
         foreach ($this->swagger['paths'] as $route => $pathItem) {
-            if (!$this->matchPath($request, $route)) {
-                continue;
+            if ($this->matchPath($request, $route)) {
+                $matchedPath = true;
+                break;
             }
-            $matchedPath = $pathItem;
-            break;
         }
         if (!$matchedPath) {
             throw new Exception\NotFound;
@@ -56,17 +55,16 @@ class Router implements LoggerAwareInterface
         if (!array_key_exists($method, $pathItem)) {
             throw new Exception\MethodNotAllowed;
         }
-        $operation = $matchedPath[$method];
+        $operation = $pathItem[$method];
 
-        $parameters = $this->getParameters($matchedPath, $operation);
+        $parameters = $this->getParameters($pathItem, $operation);
 
         $parser = new ParameterParser;
-        $parameters = $this->hydrateParameterValues($parser, $request, $parameters, key($matchedPath));
+        $parameters = $this->hydrateParameterValues($parser, $request, $parameters, $route);
         // todo security would be cool here too
 
-        // todo not sold on this interface - may tweak it
         return $request->withAttribute('swagger', [
-            'path' => $matchedPath,
+            'path' => $pathItem,
             'operation' => $operation,
             'params' => $parameters,
         ]);
