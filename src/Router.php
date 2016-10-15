@@ -10,8 +10,8 @@
 
 namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
-use Psr\Http\Message\Request as Request;
-use Psr\Http\Message\ServerRequest as Response;
+use Psr\Http\Message\RequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;

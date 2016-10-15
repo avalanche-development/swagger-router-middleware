@@ -1,6 +1,6 @@
 <?php
 
-namespace AvalancheDevelopment\SwaggerRouter;
+namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
 use PHPUnit_Framework_TestCase;
 use Psr\Http\Message\RequestInterface;
