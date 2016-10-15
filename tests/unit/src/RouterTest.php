@@ -3,8 +3,8 @@
 namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
 use PHPUnit_Framework_TestCase;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\NullLogger;
@@ -40,16 +40,23 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $this->assertAttributeEquals($logger, 'logger', $router);
     }
 
-    /**
-     * @expectedException AvalancheDevelopment\SwaggerRouter\Exception\NotFound
-     */
     public function testInvokationBailsOnEmptyPath()
     {
         $reflectedRouter = new ReflectionClass(Router::class);
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
-        $mockRequest = $this->createMock(ServerRequestInterface::class);
+        $mockRequest = $this->createMock(Request::class);
+
+        $mockResponse = $this->createMock(Response::class);
+        $mockResponse->expects($this->once())
+            ->method('withStatus')
+            ->with(404)
+            ->will($this->returnSelf());
+
+        $callback = function ($request, $response) {
+            throw new \Exception('callback should not be called');
+        };
 
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
@@ -60,12 +67,11 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $reflectedSwagger->setValue($router, [ 'paths' => [] ]);
 
-        $router($mockRequest);
+        $result = $router($mockRequest, $mockResponse, $callback);
+
+        $this->assertSame($mockResponse, $result);
     }
 
-    /**
-     * @expectedException AvalancheDevelopment\SwaggerRouter\Exception\NotFound
-     */
     public function testInvokationBailsOnUnmatchedPaths()
     {
         $route = '/test-path';
@@ -74,7 +80,17 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
-        $mockRequest = $this->createMock(ServerRequestInterface::class);
+        $mockRequest = $this->createMock(Request::class);
+
+        $mockResponse = $this->createMock(Response::class);
+        $mockResponse->expects($this->once())
+            ->method('withStatus')
+            ->with(404)
+            ->will($this->returnSelf());
+
+        $callback = function ($request, $response) {
+            throw new \Exception('callback should not be called');
+        };
 
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
@@ -87,12 +103,11 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $reflectedSwagger->setValue($router, [ 'paths' => [ $route => [] ] ]);
 
-        $router($mockRequest);
+        $result = $router($mockRequest, $mockResponse, $callback);
+
+        $this->assertSame($mockResponse, $result);
     }
 
-    /**
-     * @expectedException AvalancheDevelopment\SwaggerRouter\Exception\MethodNotAllowed
-     */
     public function testInvokationBailsOnUnmatchedOperation()
     {
         $path = [
@@ -108,12 +123,22 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
-        $mockRequest = $this->createMock(ServerRequestInterface::class);
+        $mockRequest = $this->createMock(Request::class);
         $mockRequest->expects($this->once())
             ->method('getMethod')
             ->willReturn('POST');
         $mockRequest->expects($this->never())
             ->method('withAttribute');
+
+        $mockResponse = $this->createMock(Response::class);
+        $mockResponse->expects($this->once())
+            ->method('withStatus')
+            ->with(405)
+            ->will($this->returnSelf());
+
+        $callback = function ($request, $response) {
+            throw new \Exception('callback should not be called');
+        };
 
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
@@ -126,7 +151,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
-        $router($mockRequest);
+        $result = $router($mockRequest, $mockResponse, $callback);
+
+        $this->assertSame($mockResponse, $result);
     }
 
     public function testInvokationReturnsMatchedOperation()
@@ -144,7 +171,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
-        $mockRequest = $this->createMock(ServerRequestInterface::class);
+        $mockRequest = $this->createMock(Request::class);
         $mockRequest->expects($this->once())
             ->method('getMethod')
             ->willReturn('GET');
@@ -156,6 +183,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'params' => [],
             ])
             ->will($this->returnSelf());
+
+        $mockResponse = $this->createMock(Response::class);
+
+        $callback = function ($request, $response) {
+            return $response;
+        };
 
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
@@ -181,9 +214,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
-        $result = $router($mockRequest);
+        $result = $router($mockRequest, $mockResponse, $callback);
 
-        $this->assertInstanceOf(ServerRequestInterface::class, $result);
+        $this->assertSame($mockResponse, $result);
     }
 
     public function testInvokationReturnsParameters()
@@ -206,7 +239,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
-        $mockRequest = $this->createMock(ServerRequestInterface::class);
+        $mockRequest = $this->createMock(Request::class);
         $mockRequest->expects($this->once())
             ->method('getMethod')
             ->willReturn('GET');
@@ -218,6 +251,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'params' => [ $parameter ],
             ])
             ->will($this->returnSelf());
+
+        $mockResponse = $this->createMock(Response::class);
+
+        $callback = function ($request, $response) {
+            return $response;
+        };
 
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
@@ -243,9 +282,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
-        $result = $router($mockRequest);
+        $result = $router($mockRequest, $mockResponse, $callback);
 
-        $this->assertInstanceOf(ServerRequestInterface::class, $result);
+        $this->assertSame($mockResponse, $result);
     }
 
     public function testMatchPathPassesMatchedNonVariablePath()
@@ -256,7 +295,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $mockUri->method('getPath')
             ->willReturn('/test-path');
 
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(Request::class);
         $mockRequest->method('getUri')
             ->willReturn($mockUri);
 
@@ -281,7 +320,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $mockUri->method('getPath')
             ->willReturn('/not-test-path');
 
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(Request::class);
         $mockRequest->method('getUri')
             ->willReturn($mockUri);
 
@@ -306,7 +345,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $mockUri->method('getPath')
             ->willReturn('/resource/123');
 
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(Request::class);
         $mockRequest->method('getUri')
             ->willReturn($mockUri);
 
@@ -331,7 +370,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $mockUri->method('getPath')
             ->willReturn('/other-resource/123');
 
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(Request::class);
         $mockRequest->method('getUri')
             ->willReturn($mockUri);
 
@@ -461,7 +500,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
     public function testHydrateParameterValuesHandlesNoParameters()
     {
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(Request::class);
 
         $mockParser = $this->createMock(ParameterParser::class);
         $mockParser->expects($this->never())
@@ -490,7 +529,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             [ 'name' => 'parameter two' ],
         ];
 
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(Request::class);
 
         $valueMap = [
             [ $mockRequest, $parameters[0], $route, 'value one' ],
