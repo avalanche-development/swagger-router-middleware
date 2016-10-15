@@ -1,17 +1,17 @@
 <?php
 
 /**
- * Router based on swagger definition
- * Accepts an incoming request object and returns decorated request object
+ * Middleware router based on swagger definition
+ * Accepts an incoming request object and passes on a decorated request object
  * Request object will have attributes filled out w/ route information
  * Also, reserved 'swagger' attribute with the operation info from swagger
  * Throws exception for unmatched request
  */
 
-namespace AvalancheDevelopment\SwaggerRouter;
+namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\Request as Request;
+use Psr\Http\Message\ServerRequest as Response;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -35,10 +35,12 @@ class Router implements LoggerAwareInterface
     }
 
     /**
-     * @param ServerRequestInterface $request
-     * @return ServerRequestInterface
+     * @param Request $request
+     * @param Response $response
+     * @param callable $next
+     * @return ServerRequest
      */
-    public function __invoke(ServerRequestInterface $request)
+    public function __invoke(Request $request, Response $response, callable $next)
     {
         $matchedPath = false;
         foreach ($this->swagger['paths'] as $route => $pathItem) {
@@ -48,34 +50,39 @@ class Router implements LoggerAwareInterface
             }
         }
         if (!$matchedPath) {
-            throw new Exception\NotFound;
+            $response = $response->withStatus(404);
+            return $response;
         }
 
         $method = strtolower($request->getMethod());
         if (!array_key_exists($method, $pathItem)) {
-            throw new Exception\MethodNotAllowed;
+            $response = $response->withStatus(405);
+            return $response;
         }
+
         $operation = $pathItem[$method];
 
         $parameters = $this->getParameters($pathItem, $operation);
 
         $parser = new ParameterParser;
         $parameters = $this->hydrateParameterValues($parser, $request, $parameters, $route);
+
         // todo security would be cool here too
 
-        return $request->withAttribute('swagger', [
+        $request = $request->withAttribute('swagger', [
             'path' => $pathItem,
             'operation' => $operation,
             'params' => $parameters,
         ]);
+        return $next($request, $response);
     }
 
     /**
-     * @param RequestInterface $request
+     * @param Request $request
      * @param string $route
      * @response boolean
      */
-    protected function matchPath(RequestInterface $request, $route)
+    protected function matchPath(Request $request, $route)
     {
         $isVariablePath = strstr($route, '{') && strstr($route, '}');
         if (!$isVariablePath && $request->getUri()->getPath() === $route) {
@@ -127,14 +134,14 @@ class Router implements LoggerAwareInterface
 
     /**
      * @param ParameterParser $parser
-     * @param RequestInterface $request
+     * @param Request $request
      * @param array $parameters
      * @param string $route
      * @return array
      */
     protected function hydrateParameterValues(
         ParameterParser $parser,
-        RequestInterface $request,
+        Request $request,
         array $parameters,
         $route
     ) {

@@ -1,8 +1,8 @@
 <?php
 
-namespace AvalancheDevelopment\SwaggerRouter;
+namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
-use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\Request as Request;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -19,12 +19,12 @@ class ParameterParser implements LoggerAwareInterface
     }
 
     /**
-     * @param RequestInterface $request
+     * @param Request $request
      * @param array $parameter
      * @param string $route
      * @return mixed
      */
-    public function __invoke(RequestInterface $request, array $parameter, $route)
+    public function __invoke(Request $request, array $parameter, $route)
     {
         switch ($parameter['in']) {
             case 'query':
@@ -56,11 +56,11 @@ class ParameterParser implements LoggerAwareInterface
     }
 
     /**
-     * @param RequestInterface $request
+     * @param Request $request
      * @param array $parameter
      * @returns mixed
      */
-    protected function getQueryValue(RequestInterface $request, array $parameter)
+    protected function getQueryValue(Request $request, array $parameter)
     {
         parse_str($request->getUri()->getQuery(), $query);
         if (!array_key_exists($parameter['name'], $query)) {
@@ -77,11 +77,11 @@ class ParameterParser implements LoggerAwareInterface
     }
 
     /**
-     * @param RequestInterface $request
+     * @param Request $request
      * @param array $parameter
      * @returns mixed
      */
-    protected function getHeaderValue(RequestInterface $request, array $parameter)
+    protected function getHeaderValue(Request $request, array $parameter)
     {
         $headers = $request->getHeaders();
         if (!array_key_exists($parameter['name'], $headers)) {
@@ -96,12 +96,12 @@ class ParameterParser implements LoggerAwareInterface
     }
 
     /**
-     * @param RequestInterface $request
+     * @param Request $request
      * @param array $parameter
      * @param string $route
      * @returns mixed
      */
-    protected function getPathValue(RequestInterface $request, array $parameter, $route)
+    protected function getPathValue(Request $request, array $parameter, $route)
     {
         $path = $request->getUri()->getPath();
         $key = str_replace(

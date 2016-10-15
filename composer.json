@@ -1,5 +1,5 @@
 {
-    "name": "avalanche-development/swagger-router",
+    "name": "avalanche-development/swagger-router-middleware",
     "license": "MIT",
     "authors": [
         {
@@ -18,7 +18,7 @@
     },
     "autoload": {
         "psr-4": {
-            "AvalancheDevelopment\\SwaggerRouter\\": "src/"
+            "AvalancheDevelopment\\SwaggerRouterMiddleware\\": "src/"
         }
     }
 }
