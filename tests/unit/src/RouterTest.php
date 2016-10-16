@@ -5,8 +5,9 @@ namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 use PHPUnit_Framework_TestCase;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Psr\Http\Message\UriInterface;
+use Psr\Http\Message\UriInterface as Uri;
 use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface as Logger;
 use Psr\Log\NullLogger;
 use ReflectionClass;
 
@@ -43,10 +44,17 @@ class RouterTest extends PHPUnit_Framework_TestCase
     public function testInvokationBailsOnEmptyPath()
     {
         $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedLogger = $reflectedRouter->getProperty('logger');
+        $reflectedLogger->setAccessible(true);
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockLogger = $this->createMock(Logger::class);
+
+        $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
 
         $mockResponse = $this->createMock(Response::class);
         $mockResponse->expects($this->once())
@@ -65,6 +73,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router->expects($this->never())
             ->method('matchPath');
 
+        $reflectedLogger->setValue($router, $mockLogger);
         $reflectedSwagger->setValue($router, [ 'paths' => [] ]);
 
         $result = $router($mockRequest, $mockResponse, $callback);
@@ -77,10 +86,17 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $route = '/test-path';
 
         $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedLogger = $reflectedRouter->getProperty('logger');
+        $reflectedLogger->setAccessible(true);
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockLogger = $this->createMock(Logger::class);
+
+        $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
 
         $mockResponse = $this->createMock(Response::class);
         $mockResponse->expects($this->once())
@@ -101,6 +117,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->with($mockRequest, $route)
             ->willReturn(false);
 
+        $reflectedLogger->setValue($router, $mockLogger);
         $reflectedSwagger->setValue($router, [ 'paths' => [ $route => [] ] ]);
 
         $result = $router($mockRequest, $mockResponse, $callback);
@@ -120,10 +137,17 @@ class RouterTest extends PHPUnit_Framework_TestCase
         ];
 
         $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedLogger = $reflectedRouter->getProperty('logger');
+        $reflectedLogger->setAccessible(true);
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockLogger = $this->createMock(Logger::class);
+
+        $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
         $mockRequest->expects($this->once())
             ->method('getMethod')
             ->willReturn('POST');
@@ -149,6 +173,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->with($mockRequest, key($path))
             ->willReturn(true);
 
+        $reflectedLogger->setValue($router, $mockLogger);
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
         $result = $router($mockRequest, $mockResponse, $callback);
@@ -168,10 +193,17 @@ class RouterTest extends PHPUnit_Framework_TestCase
         ];
 
         $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedLogger = $reflectedRouter->getProperty('logger');
+        $reflectedLogger->setAccessible(true);
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockLogger = $this->createMock(Logger::class);
+
+        $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
         $mockRequest->expects($this->once())
             ->method('getMethod')
             ->willReturn('GET');
@@ -212,6 +244,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             )
             ->willReturn([]);
 
+        $reflectedLogger->setValue($router, $mockLogger);
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
         $result = $router($mockRequest, $mockResponse, $callback);
@@ -236,10 +269,17 @@ class RouterTest extends PHPUnit_Framework_TestCase
         ];
 
         $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedLogger = $reflectedRouter->getProperty('logger');
+        $reflectedLogger->setAccessible(true);
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockLogger = $this->createMock(Logger::class);
+
+        $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
         $mockRequest->expects($this->once())
             ->method('getMethod')
             ->willReturn('GET');
@@ -280,6 +320,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             )
             ->willReturn([ $parameter ]);
 
+        $reflectedLogger->setValue($router, $mockLogger);
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
         $result = $router($mockRequest, $mockResponse, $callback);
@@ -291,7 +332,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
     {
         $testPath = '/test-path';
 
-        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri = $this->createMock(Uri::class);
         $mockUri->method('getPath')
             ->willReturn('/test-path');
 
@@ -316,7 +357,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
     {
         $testPath = '/test-path';
 
-        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri = $this->createMock(Uri::class);
         $mockUri->method('getPath')
             ->willReturn('/not-test-path');
 
@@ -341,7 +382,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
     {
         $testPath = '/resource/{resource_id}';
 
-        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri = $this->createMock(Uri::class);
         $mockUri->method('getPath')
             ->willReturn('/resource/123');
 
@@ -366,7 +407,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
     {
         $testPath = '/resource/{resource_id}';
 
-        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri = $this->createMock(Uri::class);
         $mockUri->method('getPath')
             ->willReturn('/other-resource/123');
 
