@@ -42,6 +42,18 @@ class Router implements LoggerAwareInterface
      */
     public function __invoke(Request $request, Response $response, callable $next)
     {
+        if ($request->getUri()->getPath() == '/api-docs') {
+            $this->log('Documentation route - early response');
+
+            $swaggerDoc = json_encode($this->swagger);
+            if ($swaggerDoc === false) {
+                throw new \Exception('Invalid swagger - could not decode');
+            }
+
+            $response->getBody()->write($swaggerDoc);
+            return $response;
+        }
+
         $matchedPath = false;
         foreach ($this->swagger['paths'] as $route => $pathItem) {
             if ($this->matchPath($request, $route)) {
@@ -50,12 +62,14 @@ class Router implements LoggerAwareInterface
             }
         }
         if (!$matchedPath) {
+            $this->log('No match found in swagger docs - 404');
             $response = $response->withStatus(404);
             return $response;
         }
 
         $method = strtolower($request->getMethod());
         if (!array_key_exists($method, $pathItem)) {
+            $this->log('No method for this route - 405');
             $response = $response->withStatus(405);
             return $response;
         }
@@ -149,5 +163,13 @@ class Router implements LoggerAwareInterface
             $parameter['value'] = $parser($request, $parameter, $route);
             return $parameter;
         }, $parameters);
+    }
+
+    /**
+     * @param string $message
+     */
+    protected function log($message)
+    {
+        $this->logger->debug("swagger-router-middleware: {$message}");
     }
 }
