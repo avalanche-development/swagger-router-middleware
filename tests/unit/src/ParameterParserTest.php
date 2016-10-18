@@ -5,28 +5,10 @@ namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 use PHPUnit_Framework_TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\NullLogger;
 use ReflectionClass;
 
 class ParameterParserTest extends PHPUnit_Framework_TestCase
 {
-
-    public function testImplementsLoggerAwareInterface()
-    {
-        $router = new ParameterParser;
-
-        $this->assertInstanceOf(LoggerAwareInterface::class, $router);
-    }
-
-    public function testConstructSetsNullLogger()
-    {
-        $logger = new NullLogger;
-
-        $router = new ParameterParser;
-
-        $this->assertAttributeEquals($logger, 'logger', $router);
-    }
 
     public function testInvokeHandlesQueryParameter()
     {
