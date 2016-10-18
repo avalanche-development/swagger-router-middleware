@@ -168,8 +168,7 @@ class ParameterParser
     {
         $type = $parameter['type'];
 
-        switch ($type)
-        {
+        switch ($type) {
             case 'array':
                 // todo recursion
                 throw new \Exception('implement recursion');

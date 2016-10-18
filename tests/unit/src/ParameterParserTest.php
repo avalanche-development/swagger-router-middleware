@@ -501,4 +501,119 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
             [[ 'collectionFormat' => 'invalid' ]]
         );
     }
+
+    public function testCastTypeHandlesArray()
+    {
+        $this->markTestIncomplete('not yet implemented');
+    }
+
+    public function testCastTypeHandlesBoolean()
+    {
+        $value = 'false';
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [ 'type' => 'boolean' ],
+            ]
+        );
+
+        $this->assertSame((boolean) $value, $result);
+    }
+
+    public function testCastTypeHandlesFile()
+    {
+        $this->markTestIncomplete('not yet implemented');
+    }
+
+    public function testCastTypeHandlesInteger()
+    {
+        $value = '245';
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [ 'type' => 'integer' ],
+            ]
+        );
+
+        $this->assertSame((int) $value, $result);
+    }
+
+    public function testCastTypeHandlesNumber()
+    {
+        $value = '3.141592';
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [ 'type' => 'number' ],
+            ]
+        );
+
+        $this->assertSame((float) $value, $result);
+    }
+
+    public function testCastTypeHandlesString()
+    {
+        $value = 1337;
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [ 'type' => 'string' ],
+            ]
+        );
+
+        $this->assertSame((string) $value, $result);
+    }
+
+    public function testCastTypeHandlesDate()
+    {
+        $this->markTestIncomplete('not yet implemented');
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage invalid parameter type value
+     */
+    public function testCastTypeBailsOnUnknownType()
+    {
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                '',
+                [ 'type' => 'invalid' ],
+            ]
+        );
+    }
 }
