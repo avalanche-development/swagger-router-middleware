@@ -48,7 +48,7 @@ class ParameterParser
     /**
      * @param Request $request
      * @param array $parameter
-     * @returns mixed
+     * @return mixed
      */
     protected function getQueryValue(Request $request, array $parameter)
     {
@@ -69,7 +69,7 @@ class ParameterParser
     /**
      * @param Request $request
      * @param array $parameter
-     * @returns mixed
+     * @return mixed
      */
     protected function getHeaderValue(Request $request, array $parameter)
     {
@@ -89,7 +89,7 @@ class ParameterParser
      * @param Request $request
      * @param array $parameter
      * @param string $route
-     * @returns mixed
+     * @return mixed
      */
     protected function getPathValue(Request $request, array $parameter, $route)
     {
