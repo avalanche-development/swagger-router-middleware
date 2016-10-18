@@ -78,17 +78,18 @@ class Router implements LoggerAwareInterface
         $operation = $pathItem[$method];
 
         $parameters = $this->getParameters($pathItem, $operation);
+        $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
 
-        $parser = new ParameterParser;
-        $parameters = $this->hydrateParameterValues($parser, $request, $parameters, $route);
-
-        // todo security would be cool here too
+        $security = $this->getSecurity($operation, $this->swagger);
 
         $request = $request->withAttribute('swagger', [
+            'apiPath' => $route,
             'path' => $pathItem,
             'operation' => $operation,
             'params' => $parameters,
+            'security' => $security,
         ]);
+
         return $next($request, $response);
     }
 
@@ -173,6 +174,22 @@ class Router implements LoggerAwareInterface
             $parameter['value'] = $parser($request, $parameter, $route);
             return $parameter;
         }, $parameters);
+    }
+
+    /**
+     * @param array $operation
+     * @param array $swagger
+     * @return array
+     */
+    protected function getSecurity(array $operation, array $swagger)
+    {
+        if (isset($operation['security'])) {
+            return $operation['security'];
+        }
+        if (isset($swagger['security'])) {
+            return $swagger['security'];
+        }
+        return [];
     }
 
     /**

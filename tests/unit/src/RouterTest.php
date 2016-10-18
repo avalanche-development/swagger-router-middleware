@@ -210,9 +210,11 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $mockRequest->expects($this->once())
             ->method('withAttribute')
             ->with('swagger', [
+                'apiPath' => key($path),
                 'path' => current($path),
                 'operation' => current($path)['get'],
                 'params' => [],
+                'security' => [],
             ])
             ->will($this->returnSelf());
 
@@ -286,9 +288,11 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $mockRequest->expects($this->once())
             ->method('withAttribute')
             ->with('swagger', [
+                'apiPath' => key($path),
                 'path' => current($path),
                 'operation' => current($path)['get'],
                 'params' => [ $parameter ],
+                'security' => [],
             ])
             ->will($this->returnSelf());
 
