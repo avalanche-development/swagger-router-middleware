@@ -77,6 +77,7 @@ class Router implements LoggerAwareInterface
 
         $operation = $pathItem[$method];
 
+        // todo wrap in catch block for 400-level responses
         $parameters = $this->getParameters($pathItem, $operation);
         $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
 
