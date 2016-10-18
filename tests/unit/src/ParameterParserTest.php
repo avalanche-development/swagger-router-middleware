@@ -13,20 +13,21 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
     public function testInvokeHandlesQueryParameter()
     {
         $mockRequest = $this->createMock(RequestInterface::class);
-        $parameter = [
-            'in' => 'query',
-            'type' => 'string',
-        ];
+        $parameter = [ 'in' => 'query' ];
         $route = '/some-route';
         $value = 'some value';
 
         $parameterParser = $this->getMockBuilder(ParameterParser::class)
-            ->setMethods([ 'getQueryValue' ])
+            ->setMethods([ 'getQueryValue', 'castType' ])
             ->getMock();
         $parameterParser->expects($this->once())
             ->method('getQueryValue')
             ->with($mockRequest, $parameter)
             ->willReturn($value);
+        $parameterParser->expects($this->once())
+            ->method('castType')
+            ->with($value, $parameter)
+            ->will($this->returnArgument(0));
 
         $result = $parameterParser($mockRequest, $parameter, $route);
 
@@ -36,20 +37,21 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
     public function testInvokeHandlesHeaderParameter()
     {
         $mockRequest = $this->createMock(RequestInterface::class);
-        $parameter = [
-            'in' => 'header',
-            'type' => 'string',
-        ];
+        $parameter = [ 'in' => 'header' ];
         $route = '/some-route';
         $value = 'some value';
 
         $parameterParser = $this->getMockBuilder(ParameterParser::class)
-            ->setMethods([ 'getHeaderValue' ])
+            ->setMethods([ 'getHeaderValue', 'castType' ])
             ->getMock();
         $parameterParser->expects($this->once())
             ->method('getHeaderValue')
             ->with($mockRequest, $parameter)
             ->willReturn($value);
+        $parameterParser->expects($this->once())
+            ->method('castType')
+            ->with($value, $parameter)
+            ->will($this->returnArgument(0));
 
         $result = $parameterParser($mockRequest, $parameter, $route);
 
@@ -59,20 +61,21 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
     public function testInvokeHandlesPathParameter()
     {
         $mockRequest = $this->createMock(RequestInterface::class);
-        $parameter = [
-            'in' => 'path',
-            'type' => 'string',
-        ];
+        $parameter = [ 'in' => 'path' ];
         $route = '/some-route';
         $value = 'some value';
 
         $parameterParser = $this->getMockBuilder(ParameterParser::class)
-            ->setMethods([ 'getPathValue' ])
+            ->setMethods([ 'getPathValue', 'castType' ])
             ->getMock();
         $parameterParser->expects($this->once())
             ->method('getPathValue')
             ->with($mockRequest, $parameter, $route)
             ->willReturn($value);
+        $parameterParser->expects($this->once())
+            ->method('castType')
+            ->with($value, $parameter)
+            ->will($this->returnArgument(0));
 
         $result = $parameterParser($mockRequest, $parameter, $route);
 
@@ -109,16 +112,19 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $parameter = [
             'in' => 'path',
             'default' => 'some default value',
-            'type' => 'string',
         ];
         $route = '/some-route';
 
         $parameterParser = $this->getMockBuilder(ParameterParser::class)
-            ->setMethods([ 'getPathValue' ])
+            ->setMethods([ 'getPathValue', 'castType' ])
             ->getMock();
         $parameterParser->expects($this->once())
             ->method('getPathValue')
             ->with($mockRequest, $parameter, $route);
+        $parameterParser->expects($this->once())
+            ->method('castType')
+            ->with($parameter['default'], $parameter)
+            ->will($this->returnArgument(0));
 
         $result = $parameterParser($mockRequest, $parameter, $route);
 
