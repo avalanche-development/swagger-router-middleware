@@ -52,7 +52,7 @@ class ParameterParser implements LoggerAwareInterface
             $value = $parameter['default'];
         }
 
-        // todo cast into respective data types
+        $value = $this->castType($value, $parameter);
         return $value;
     }
 
@@ -168,5 +168,44 @@ class ParameterParser implements LoggerAwareInterface
         }
 
         return $delimiter;
+    }
+
+    /**
+     * @param mixed $value
+     * @param array $parameter
+     * @return mixed
+     */
+    protected function castType($value, array $parameter)
+    {
+        $type = $parameter['type'];
+
+        switch ($type)
+        {
+            case 'array':
+                // todo recursion
+                throw new \Exception('implement recursion');
+                break;
+            case 'boolean':
+                $value = (boolean) $value;
+                break;
+            case 'file':
+                throw new \Exception('implement file');
+                break;
+            case 'integer':
+                $value = (int) $value;
+                break;
+            case 'number':
+                $value = (float) $value;
+                break;
+            case 'string':
+                $value = (string) $value;
+                // todo add dates
+                break;
+            default:
+                throw new \Exception('invalid parameter type value');
+                break;
+        }
+
+        return $value;
     }
 }

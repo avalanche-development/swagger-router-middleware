@@ -31,7 +31,10 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
     public function testInvokeHandlesQueryParameter()
     {
         $mockRequest = $this->createMock(RequestInterface::class);
-        $parameter = [ 'in' => 'query' ];
+        $parameter = [
+            'in' => 'query',
+            'type' => 'string',
+        ];
         $route = '/some-route';
         $value = 'some value';
 
@@ -51,7 +54,10 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
     public function testInvokeHandlesHeaderParameter()
     {
         $mockRequest = $this->createMock(RequestInterface::class);
-        $parameter = [ 'in' => 'header' ];
+        $parameter = [
+            'in' => 'header',
+            'type' => 'string',
+        ];
         $route = '/some-route';
         $value = 'some value';
 
@@ -71,7 +77,10 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
     public function testInvokeHandlesPathParameter()
     {
         $mockRequest = $this->createMock(RequestInterface::class);
-        $parameter = [ 'in' => 'path' ];
+        $parameter = [
+            'in' => 'path',
+            'type' => 'string',
+        ];
         $route = '/some-route';
         $value = 'some value';
 
@@ -118,6 +127,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $parameter = [
             'in' => 'path',
             'default' => 'some default value',
+            'type' => 'string',
         ];
         $route = '/some-route';
 
