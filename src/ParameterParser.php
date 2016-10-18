@@ -40,6 +40,7 @@ class ParameterParser implements LoggerAwareInterface
                 throw new \Exception('not yet implemented');
                 break;
             case 'body':
+                // todo this needs to be implemented before release
                 throw new \Exception('not yet implemented');
                 break;
             default:

@@ -42,7 +42,7 @@ class Router implements LoggerAwareInterface
      */
     public function __invoke(Request $request, Response $response, callable $next)
     {
-        if ($request->getUri()->getPath() == '/api-docs') {
+        if ($this->isDocumentationRoute($request)) {
             $this->log('Documentation route - early response');
 
             $swaggerDoc = json_encode($this->swagger);
@@ -50,6 +50,7 @@ class Router implements LoggerAwareInterface
                 throw new \Exception('Invalid swagger - could not decode');
             }
 
+            $response = $response->withStatus(200);
             $response->getBody()->write($swaggerDoc);
             return $response;
         }
@@ -89,6 +90,15 @@ class Router implements LoggerAwareInterface
             'params' => $parameters,
         ]);
         return $next($request, $response);
+    }
+
+    /**
+     * @param Request $request
+     * @response boolean
+     */
+    protected function isDocumentationRoute(Request $request)
+    {
+        return ($request->getUri()->getPath() === '/api-docs');
     }
 
     /**
