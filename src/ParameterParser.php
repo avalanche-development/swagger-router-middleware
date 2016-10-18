@@ -2,6 +2,7 @@
 
 namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
+use DateTime;
 use Psr\Http\Message\RequestInterface as Request;
 
 class ParameterParser
@@ -187,7 +188,15 @@ class ParameterParser
                 break;
             case 'string':
                 $value = (string) $value;
-                // todo add dates
+                try {
+                    if (isset($parameter['format']) && $parameter['format'] == 'date') {
+                        $value = DateTime::createFromFormat('Y-m-d', $value);
+                    } else if (isset($parameter['format']) && $parameter['format'] == 'date-time') {
+                        $value = new DateTime($value);
+                    }
+                } catch (\Exception $e) {
+                    throw new Exception\BadRequest('', 0, $e);
+                }
                 break;
             default:
                 throw new \Exception('invalid parameter type value');

@@ -2,6 +2,7 @@
 
 namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
+use DateTime;
 use PHPUnit_Framework_TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
@@ -594,7 +595,74 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testCastTypeHandlesDate()
     {
-        $this->markTestIncomplete('not yet implemented');
+        $value = '2016-10-18';
+        $expectedValue = DateTime::createFromFormat('Y-m-d', $value);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [
+                    'type' => 'string',
+                    'format' => 'date',
+                ],
+            ]
+        );
+
+        $this->assertEquals($expectedValue, $result);
+    }
+
+    public function testCastTypeHandlesDateTime()
+    {
+        $value = '2016-10-18T+07:00';
+        $expectedValue = new DateTime($value);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [
+                    'type' => 'string',
+                    'format' => 'date-time',
+                ],
+            ]
+        );
+
+        $this->assertEquals($expectedValue, $result);
+    }
+
+    /**
+     * @expectedException AvalancheDevelopment\SwaggerRouterMiddleware\Exception\BadRequest
+     */
+    public function testCastTypeHandlesDateTimeFailures()
+    {
+        $value = 'invalid date';
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [
+                    'type' => 'string',
+                    'format' => 'date-time',
+                ],
+            ]
+        );
     }
 
     /**
