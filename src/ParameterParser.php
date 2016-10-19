@@ -211,10 +211,9 @@ class ParameterParser
 
         switch ($parameter['format']) {
             case 'date':
-                try {
-                    $value = DateTime::createFromFormat('Y-m-d', $value);
-                } catch (\Exception $e) {
-                    throw new Exception\BadRequest('', 0, $e);
+                $value = DateTime::createFromFormat('Y-m-d', $value);
+                if (!$value) {
+                    throw new Exception\BadRequest();
                 }
                 break;
             case 'date-time':

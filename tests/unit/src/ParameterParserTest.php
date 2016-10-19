@@ -664,6 +664,9 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($expectedValue, $result);
     }
 
+    /**
+     * @expectedException AvalancheDevelopment\SwaggerRouterMiddleware\Exception\BadRequest
+     */
     public function testFormatStringHandlesDateFailures()
     {
         $value = 'invalid date';
