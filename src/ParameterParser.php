@@ -225,7 +225,7 @@ class ParameterParser
                 }
                 break;
             default:
-                throw new \Exception('unrecognized string format');
+                // this is an open-type property
                 break;
         }
 

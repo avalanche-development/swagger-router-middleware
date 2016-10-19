@@ -576,93 +576,31 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
     public function testCastTypeHandlesString()
     {
         $value = 1337;
+        $parameter = [
+            'type' => 'string',
+        ];
 
         $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
         $reflectedCastType = $reflectedParameterParser->getMethod('castType');
         $reflectedCastType->setAccessible(true);
 
-        $parameterParser = new ParameterParser;
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'formatString' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('formatString')
+            ->with($value, $parameter)
+            ->will($this->returnArgument(0));
+
         $result = $reflectedCastType->invokeArgs(
             $parameterParser,
             [
                 $value,
-                [ 'type' => 'string' ],
+                $parameter,
             ]
         );
 
         $this->assertSame((string) $value, $result);
-    }
-
-    public function testCastTypeHandlesDate()
-    {
-        $value = '2016-10-18';
-        $expectedValue = DateTime::createFromFormat('Y-m-d', $value);
-
-        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
-        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
-        $reflectedCastType->setAccessible(true);
-
-        $parameterParser = new ParameterParser;
-        $result = $reflectedCastType->invokeArgs(
-            $parameterParser,
-            [
-                $value,
-                [
-                    'type' => 'string',
-                    'format' => 'date',
-                ],
-            ]
-        );
-
-        $this->assertEquals($expectedValue, $result);
-    }
-
-    public function testCastTypeHandlesDateTime()
-    {
-        $value = '2016-10-18T+07:00';
-        $expectedValue = new DateTime($value);
-
-        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
-        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
-        $reflectedCastType->setAccessible(true);
-
-        $parameterParser = new ParameterParser;
-        $result = $reflectedCastType->invokeArgs(
-            $parameterParser,
-            [
-                $value,
-                [
-                    'type' => 'string',
-                    'format' => 'date-time',
-                ],
-            ]
-        );
-
-        $this->assertEquals($expectedValue, $result);
-    }
-
-    /**
-     * @expectedException AvalancheDevelopment\SwaggerRouterMiddleware\Exception\BadRequest
-     */
-    public function testCastTypeHandlesDateTimeFailures()
-    {
-        $value = 'invalid date';
-
-        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
-        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
-        $reflectedCastType->setAccessible(true);
-
-        $parameterParser = new ParameterParser;
-        $reflectedCastType->invokeArgs(
-            $parameterParser,
-            [
-                $value,
-                [
-                    'type' => 'string',
-                    'format' => 'date-time',
-                ],
-            ]
-        );
     }
 
     /**
@@ -683,5 +621,126 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
                 [ 'type' => 'invalid' ],
             ]
         );
+    }
+
+    public function testFormatStringIgnoresFormatlessParameter()
+    {
+        $value = 'some string';
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedFormatString = $reflectedParameterParser->getMethod('formatString');
+        $reflectedFormatString->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedFormatString->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                []
+            ]
+        );
+
+        $this->assertSame($value, $result);
+    }
+
+    public function testFormatStringHandlesDate()
+    {
+        $value = '2016-10-18';
+        $expectedValue = DateTime::createFromFormat('Y-m-d', $value);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedFormatString = $reflectedParameterParser->getMethod('formatString');
+        $reflectedFormatString->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedFormatString->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [ 'format' => 'date' ],
+            ]
+        );
+
+        $this->assertEquals($expectedValue, $result);
+    }
+
+    public function testFormatStringHandlesDateFailures()
+    {
+        $value = 'invalid date';
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedFormatString = $reflectedParameterParser->getMethod('formatString');
+        $reflectedFormatString->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $reflectedFormatString->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [ 'format' => 'date' ],
+            ]
+        );
+    }
+
+    public function testFormatStringHandlesDateTime()
+    {
+        $value = '2016-10-18T+07:00';
+        $expectedValue = new DateTime($value);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedFormatString = $reflectedParameterParser->getMethod('formatString');
+        $reflectedFormatString->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedFormatString->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [ 'format' => 'date-time' ],
+            ]
+        );
+
+        $this->assertEquals($expectedValue, $result);
+    }
+
+    /**
+     * @expectedException AvalancheDevelopment\SwaggerRouterMiddleware\Exception\BadRequest
+     */
+    public function testFormatStringHandlesDateTimeFailures()
+    {
+        $value = 'invalid date';
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedFormatString = $reflectedParameterParser->getMethod('formatString');
+        $reflectedFormatString->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $reflectedFormatString->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [ 'format' => 'date-time' ],
+            ]
+        );
+    }
+
+    public function testFormatStringIgnoresOnUnmatchedFormat()
+    {
+        $value = 'some value';
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedFormatString = $reflectedParameterParser->getMethod('formatString');
+        $reflectedFormatString->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedFormatString->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [ 'format' => 'random' ],
+            ]
+        );
+
+        $this->assertSame($value, $result);
     }
 }
