@@ -188,18 +188,44 @@ class ParameterParser
                 break;
             case 'string':
                 $value = (string) $value;
+                $value = $this->formatString($value, $parameter);
+                break;
+            default:
+                throw new \Exception('invalid parameter type value');
+                break;
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param string $value
+     * @param array $parameter
+     * @return mixed
+     */
+    protected function formatString($value, array $parameter)
+    {
+        if (!array_key_exists('format', $parameter)) {
+            return $value;
+        }
+
+        switch ($parameter['format']) {
+            case 'date':
                 try {
-                    if (isset($parameter['format']) && $parameter['format'] == 'date') {
-                        $value = DateTime::createFromFormat('Y-m-d', $value);
-                    } else if (isset($parameter['format']) && $parameter['format'] == 'date-time') {
-                        $value = new DateTime($value);
-                    }
+                    $value = DateTime::createFromFormat('Y-m-d', $value);
+                } catch (\Exception $e) {
+                    throw new Exception\BadRequest('', 0, $e);
+                }
+                break;
+            case 'date-time':
+                try {
+                    $value = new DateTime($value);
                 } catch (\Exception $e) {
                     throw new Exception\BadRequest('', 0, $e);
                 }
                 break;
             default:
-                throw new \Exception('invalid parameter type value');
+                throw new \Exception('unrecognized string format');
                 break;
         }
 
