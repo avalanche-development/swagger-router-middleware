@@ -488,7 +488,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     /**
      * @expectedException Exception
-     * @expectedException invalid collectionFormat value
+     * @expectedExceptionMessage invalid collection format value
      */
     public function testGetDelimiterReturnsCsvForUnknowns()
     {
@@ -503,9 +503,75 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         );
     }
 
-    public function testCastTypeHandlesArray()
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage array items are not defined 
+     */
+    public function testCastTypeBailsWhenArrayHasNoItems()
     {
-        $this->markTestIncomplete('not yet implemented');
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                '',
+                [ 'type' => 'array' ],
+            ]
+        );
+    }
+
+    /**
+     * @expectedException AvalancheDevelopment\SwaggerRouterMiddleware\Exception\BadRequest
+     */ 
+    public function testCaseTypeBailsWhenArrayValueIsBad()
+    {
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                '',
+                [
+                    'type' => 'array',
+                    'items' => [],
+                ],
+            ]
+        );
+    }
+
+    public function testCaseTypeHandlesArray()
+    {
+        $value = [
+            123,
+            456,
+        ];
+        $expectedValue = array_map(function ($row) {
+            return (string) $row;
+        }, $value);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                [
+                    'type' => 'array',
+                    'items' => [ 'type' => 'string' ],
+                ],
+            ]
+        );
+
+        $this->assertSame($expectedValue, $result);
     }
 
     public function testCastTypeHandlesBoolean()

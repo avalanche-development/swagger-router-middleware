@@ -171,8 +171,15 @@ class ParameterParser
 
         switch ($type) {
             case 'array':
-                // todo recursion
-                throw new \Exception('implement recursion');
+                if (!isset($parameter['items'])) {
+                    throw new \Exception('array items are not defined');
+                }
+                if (!is_array($value)) {
+                    throw new Exception\BadRequest();
+                }
+                foreach ($value as $key => $row) {
+                    $value[$key] = $this->castType($row, $parameter['items']);
+                }
                 break;
             case 'boolean':
                 $value = (boolean) $value;
