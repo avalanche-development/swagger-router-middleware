@@ -171,12 +171,6 @@ class ParameterParser
 
         switch ($type) {
             case 'array':
-                if (!isset($parameter['items'])) {
-                    throw new \Exception('array items are not defined');
-                }
-                if (!is_array($value)) {
-                    throw new Exception\BadRequest();
-                }
                 foreach ($value as $key => $row) {
                     $value[$key] = $this->castType($row, $parameter['items']);
                 }

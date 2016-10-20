@@ -503,48 +503,6 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         );
     }
 
-    /**
-     * @expectedException Exception
-     * @expectedExceptionMessage array items are not defined 
-     */
-    public function testCastTypeBailsWhenArrayHasNoItems()
-    {
-        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
-        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
-        $reflectedCastType->setAccessible(true);
-
-        $parameterParser = new ParameterParser;
-        $reflectedCastType->invokeArgs(
-            $parameterParser,
-            [
-                '',
-                [ 'type' => 'array' ],
-            ]
-        );
-    }
-
-    /**
-     * @expectedException AvalancheDevelopment\SwaggerRouterMiddleware\Exception\BadRequest
-     */ 
-    public function testCaseTypeBailsWhenArrayValueIsBad()
-    {
-        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
-        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
-        $reflectedCastType->setAccessible(true);
-
-        $parameterParser = new ParameterParser;
-        $reflectedCastType->invokeArgs(
-            $parameterParser,
-            [
-                '',
-                [
-                    'type' => 'array',
-                    'items' => [],
-                ],
-            ]
-        );
-    }
-
     public function testCaseTypeHandlesArray()
     {
         $value = [
