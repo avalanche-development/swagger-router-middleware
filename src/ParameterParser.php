@@ -30,7 +30,7 @@ class ParameterParser
                 throw new \Exception('not yet implemented');
                 break;
             case 'body':
-                // todo this needs to be implemented before release
+                $value = $this->getBodyValue($request, $parameter);
                 throw new \Exception('not yet implemented');
                 break;
             default:
@@ -115,6 +115,17 @@ class ParameterParser
     }
 
     /**
+     * @param Request $request
+     * @param array $parameter
+     * @return mixed
+     */
+    protected function getBodyValue(Request $request, array $parameter)
+    {
+        $body = (string) $request->getBody();
+        return $body;
+    }
+
+    /**
      * @param mixed $value
      * @param array $parameter
      * @return array
@@ -167,7 +178,12 @@ class ParameterParser
      */
     protected function castType($value, array $parameter)
     {
-        $type = $parameter['type'];
+        if (isset($parameter['type'])) {
+            $type = $parameter['type'];
+        }
+        if (isset($parameter['in']) && $parameter['in'] === 'body') {
+            $type = $parameter['schema']['type'];
+        }
 
         switch ($type) {
             case 'array':
@@ -186,6 +202,9 @@ class ParameterParser
                 break;
             case 'number':
                 $value = (float) $value;
+                break;
+            case 'object':
+                // todo loop through and parse appropriately
                 break;
             case 'string':
                 $value = (string) $value;
