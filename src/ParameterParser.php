@@ -204,6 +204,7 @@ class ParameterParser
                 break;
             case 'object':
                 // todo loop through and parse appropriately
+                throw new \Exception('implement object');
                 break;
             case 'string':
                 $value = (string) $value;
