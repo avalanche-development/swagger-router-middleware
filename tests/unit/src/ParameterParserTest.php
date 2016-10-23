@@ -90,7 +90,26 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testInvokeHandlesBodyParameter()
     {
-        $this->markTestIncomplete('not yet implemented');
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $parameter = [ 'in' => 'body' ];
+        $route = '/some-route';
+        $value = 'some value';
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getBodyValue', 'castType' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('getBodyValue')
+            ->with($mockRequest, $parameter)
+            ->willReturn($value);
+        $parameterParser->expects($this->once())
+            ->method('castType')
+            ->with($value, $parameter)
+            ->will($this->returnArgument(0));
+
+        $result = $parameterParser($mockRequest, $parameter, $route);
+
+        $this->assertEquals($value, $result);
     }
 
     /**
@@ -377,6 +396,25 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
             '1234',
             '5678',
         ], $result);
+    }
+
+    public function testGetBodyValueReturnsValue()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest->method('getBody')
+            ->willReturn(123);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetBodyValue = $reflectedParameterParser->getMethod('getBodyValue');
+        $reflectedGetBodyValue->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetBodyValue->invokeArgs($parameterParser, [
+            $mockRequest,
+            [],
+        ]);
+
+        $this->assertSame('123', $result);
     }
 
     public function testExplodeValue()

@@ -31,7 +31,6 @@ class ParameterParser
                 break;
             case 'body':
                 $value = $this->getBodyValue($request, $parameter);
-                throw new \Exception('not yet implemented');
                 break;
             default:
                 throw new \Exception('invalid parameter type');
