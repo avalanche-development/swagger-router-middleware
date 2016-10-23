@@ -503,7 +503,53 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         );
     }
 
-    public function testCaseTypeHandlesArray()
+    public function testCastTypeDefaultsToType()
+    {
+        // if schema 'type' is used, will fail due to invalid type
+        $parameter = [
+            'in' => 'path',
+            'type' => 'integer',
+            'schema' => [ 'type' => 'invalid' ],
+        ];
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                '',
+                $parameter,
+            ]
+        );
+    }
+
+    public function testCastTypeBodyUsesSchemaType()
+    {
+        // if default 'type' is used, will fail due to invalid type
+        $parameter = [
+            'in' => 'body',
+            'type' => 'invalid',
+            'schema' => [ 'type' => 'integer' ],
+        ];
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                '',
+                $parameter,
+            ]
+        );
+    }
+
+    public function testCastTypeHandlesArray()
     {
         $value = [
             123,
@@ -595,6 +641,11 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         );
 
         $this->assertSame((float) $value, $result);
+    }
+
+    public function testCastTypeHandlesObject()
+    {
+        $this->markTestIncomplete('not yet implemented');
     }
 
     public function testCastTypeHandlesString()
