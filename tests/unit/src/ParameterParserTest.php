@@ -100,7 +100,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
             ->getMock();
         $parameterParser->expects($this->once())
             ->method('getBodyValue')
-            ->with($mockRequest, $parameter)
+            ->with($mockRequest)
             ->willReturn($value);
         $parameterParser->expects($this->once())
             ->method('castType')
@@ -409,10 +409,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedGetBodyValue->setAccessible(true);
 
         $parameterParser = new ParameterParser;
-        $result = $reflectedGetBodyValue->invokeArgs($parameterParser, [
-            $mockRequest,
-            [],
-        ]);
+        $result = $reflectedGetBodyValue->invokeArgs($parameterParser, [ $mockRequest ]);
 
         $this->assertSame('123', $result);
     }

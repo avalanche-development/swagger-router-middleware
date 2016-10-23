@@ -30,7 +30,7 @@ class ParameterParser
                 throw new \Exception('not yet implemented');
                 break;
             case 'body':
-                $value = $this->getBodyValue($request, $parameter);
+                $value = $this->getBodyValue($request);
                 break;
             default:
                 throw new \Exception('invalid parameter type');
@@ -115,10 +115,9 @@ class ParameterParser
 
     /**
      * @param Request $request
-     * @param array $parameter
      * @return mixed
      */
-    protected function getBodyValue(Request $request, array $parameter)
+    protected function getBodyValue(Request $request)
     {
         $body = (string) $request->getBody();
         return $body;
