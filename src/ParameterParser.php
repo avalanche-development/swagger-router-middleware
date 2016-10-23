@@ -202,8 +202,8 @@ class ParameterParser
                 $value = (float) $value;
                 break;
             case 'object':
-                // todo loop through and parse appropriately
-                throw new \Exception('implement object');
+                $value = (string) $value;
+                $value = $this->formatObject($value);
                 break;
             case 'string':
                 $value = (string) $value;
@@ -215,6 +215,19 @@ class ParameterParser
         }
 
         return $value;
+    }
+
+    /**
+     * @param string $value
+     * @return object
+     */
+    protected function formatObject($value)
+    {
+        $object = json_decode($value);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception\BadRequest;
+        }
+        return $object;
     }
 
     /**
@@ -232,7 +245,7 @@ class ParameterParser
             case 'date':
                 $value = DateTime::createFromFormat('Y-m-d', $value);
                 if (!$value) {
-                    throw new Exception\BadRequest();
+                    throw new Exception\BadRequest;
                 }
                 break;
             case 'date-time':

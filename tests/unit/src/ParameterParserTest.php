@@ -680,7 +680,31 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testCastTypeHandlesObject()
     {
-        $this->markTestIncomplete('not yet implemented');
+        $value = (object) [
+            'key' => 'value',
+        ];
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'formatObject' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('formatObject')
+            ->with(json_encode($value))
+            ->will($this->returnCallback('json_decode'));
+
+        $result = $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                json_encode($value),
+                [ 'type' => 'object' ],
+            ]
+        );
+
+        $this->assertEquals($value, $result);
     }
 
     public function testCastTypeHandlesString()
@@ -730,6 +754,43 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
                 '',
                 [ 'type' => 'invalid' ],
             ]
+        );
+    }
+
+    public function testFormatObjectReturnsObject()
+    {
+        $value = (object) [
+            'key' => 'value',
+        ];
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedFormatObject = $reflectedParameterParser->getMethod('formatObject');
+        $reflectedFormatObject->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedFormatObject->invokeArgs(
+            $parameterParser,
+            [ json_encode($value) ]
+        );
+
+        $this->assertEquals($value, $result);
+    }
+
+    /**
+     * @expectedException AvalancheDevelopment\SwaggerRouterMiddleware\Exception\BadRequest
+     */
+    public function testFormatObjectBailsOnBadObject()
+    {
+        $value = 'some string';
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedFormatObject = $reflectedParameterParser->getMethod('formatObject');
+        $reflectedFormatObject->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $reflectedFormatObject->invokeArgs(
+            $parameterParser,
+            [ $value ]
         );
     }
 
