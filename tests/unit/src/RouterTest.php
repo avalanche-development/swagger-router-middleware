@@ -349,10 +349,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedMatchPath->setAccessible(true);
 
         $router = new Router([]);
-        $result = $reflectedMatchPath->invokeArgs($router, [
-            $mockRequest,
-            $testPath,
-        ]);
+        $result = $reflectedMatchPath->invokeArgs(
+            $router,
+            [
+                $mockRequest,
+                $testPath,
+            ]
+        );
 
         $this->assertTrue($result);
     }
@@ -374,10 +377,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedMatchPath->setAccessible(true);
 
         $router = new Router([]);
-        $result = $reflectedMatchPath->invokeArgs($router, [
-            $mockRequest,
-            $testPath,
-        ]);
+        $result = $reflectedMatchPath->invokeArgs(
+            $router,
+            [
+                $mockRequest,
+                $testPath,
+            ]
+        );
 
         $this->assertFalse($result);
     }
@@ -399,10 +405,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedMatchPath->setAccessible(true);
 
         $router = new Router([]);
-        $result = $reflectedMatchPath->invokeArgs($router, [
-            $mockRequest,
-            $testPath,
-        ]);
+        $result = $reflectedMatchPath->invokeArgs(
+            $router,
+            [
+                $mockRequest,
+                $testPath,
+            ]
+        );
 
         $this->assertTrue($result);
     }
@@ -424,10 +433,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedMatchPath->setAccessible(true);
 
         $router = new Router([]);
-        $result = $reflectedMatchPath->invokeArgs($router, [
-            $mockRequest,
-            $testPath,
-        ]);
+        $result = $reflectedMatchPath->invokeArgs(
+            $router,
+            [
+                $mockRequest,
+                $testPath,
+            ]
+        );
 
         $this->assertFalse($result);
     }
@@ -439,7 +451,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedGetParameters->setAccessible(true);
 
         $router = new Router([]);
-        $result = $reflectedGetParameters->invokeArgs($router, [ [], [] ]);
+        $result = $reflectedGetParameters->invokeArgs(
+            $router,
+            [ [], [] ]
+        );
 
         $this->assertEquals([], $result);
     }
@@ -465,7 +480,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->with(current($parameters))
             ->willReturn('unique value');
 
-        $result = $reflectedGetParameters->invokeArgs($router, [ [ 'parameters' => $parameters ], [] ]);
+        $result = $reflectedGetParameters->invokeArgs(
+            $router,
+            [
+                [ 'parameters' => $parameters ],
+                []
+            ]
+        );
 
         $this->assertEquals($parameters, $result);
     }
@@ -491,7 +512,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->with(current($parameters))
             ->willReturn('unique value');
 
-        $result = $reflectedGetParameters->invokeArgs($router, [ [], [ 'parameters' => $parameters ] ]);
+        $result = $reflectedGetParameters->invokeArgs(
+            $router,
+            [
+                [],
+                [ 'parameters' => $parameters ]
+            ]
+        );
 
         $this->assertEquals($parameters, $result);
     }
@@ -517,10 +544,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->with(current($parameters))
             ->willReturn('unique value');
 
-        $result = $reflectedGetParameters->invokeArgs($router, [
-            [ 'parameters' => $parameters ],
-            [ 'parameters' => $parameters ],
-        ]);
+        $result = $reflectedGetParameters->invokeArgs(
+            $router,
+            [
+                [ 'parameters' => $parameters ],
+                [ 'parameters' => $parameters ],
+            ]
+        );
 
         $this->assertEquals($parameters, $result);
     }
@@ -538,7 +568,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedUniqueParameterKey->setAccessible(true);
 
         $router = new Router([]);
-        $result = $reflectedUniqueParameterKey->invokeArgs($router, [ $parameter ]);
+        $result = $reflectedUniqueParameterKey->invokeArgs(
+            $router,
+            [ $parameter ]
+        );
 
         $this->assertEquals("{$parameter['name']}-{$parameter['in']}", $result);
     }
@@ -556,12 +589,15 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedHydrateParameterValues->setAccessible(true);
 
         $router = new Router([]);
-        $result = $reflectedHydrateParameterValues->invokeArgs($router, [
-            $mockParser,
-            $mockRequest,
-            [],
-            '',
-        ]);
+        $result = $reflectedHydrateParameterValues->invokeArgs(
+            $router,
+            [
+                $mockParser,
+                $mockRequest,
+                [],
+                '',
+            ]
+        );
 
         $this->assertEquals([], $result);
     }
@@ -595,12 +631,15 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedHydrateParameterValues->setAccessible(true);
 
         $router = new Router([]);
-        $result = $reflectedHydrateParameterValues->invokeArgs($router, [
-            $mockParser,
-            $mockRequest,
-            $parameters,
-            $route,
-        ]);
+        $result = $reflectedHydrateParameterValues->invokeArgs(
+            $router,
+            [
+                $mockParser,
+                $mockRequest,
+                $parameters,
+                $route,
+            ]
+        );
 
         $this->assertEquals([
             [

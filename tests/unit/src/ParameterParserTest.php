@@ -166,10 +166,13 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedGetQueryValue->setAccessible(true);
 
         $parameterParser = new ParameterParser;
-        $result = $reflectedGetQueryValue->invokeArgs($parameterParser, [
-            $mockRequest,
-            [ 'name' => 'other_variable' ],
-        ]);
+        $result = $reflectedGetQueryValue->invokeArgs(
+            $parameterParser,
+            [
+                $mockRequest,
+                [ 'name' => 'other_variable' ],
+            ]
+        );
 
         $this->assertNull($result);
     }
@@ -189,13 +192,16 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedGetQueryValue->setAccessible(true);
 
         $parameterParser = new ParameterParser;
-        $result = $reflectedGetQueryValue->invokeArgs($parameterParser, [
-            $mockRequest,
+        $result = $reflectedGetQueryValue->invokeArgs(
+            $parameterParser,
             [
-                'name' => 'some_variable',
-                'type' => 'string',
-            ],
-        ]);
+                $mockRequest,
+                [
+                    'name' => 'some_variable',
+                    'type' => 'string',
+                ],
+            ]
+        );
 
         $this->assertEquals('value', $result);
     }
@@ -232,10 +238,13 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
             ->with('value', $parameter)
             ->willReturn($value);
 
-        $result = $reflectedGetQueryValue->invokeArgs($parameterParser, [
-            $mockRequest,
-            $parameter,
-        ]);
+        $result = $reflectedGetQueryValue->invokeArgs(
+            $parameterParser,
+            [
+                $mockRequest,
+                $parameter,
+            ]
+        );
 
         $this->assertEquals($value, $result);
     }
@@ -253,10 +262,13 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedGetHeaderValue->setAccessible(true);
 
         $parameterParser = new ParameterParser;
-        $result = $reflectedGetHeaderValue->invokeArgs($parameterParser, [
-            $mockRequest,
-            [ 'name' => 'Other-Header' ],
-        ]);
+        $result = $reflectedGetHeaderValue->invokeArgs(
+            $parameterParser,
+            [
+                $mockRequest,
+                [ 'name' => 'Other-Header' ],
+            ]
+        );
 
         $this->assertNull($result);
     }
@@ -276,13 +288,15 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedGetHeaderValue->setAccessible(true);
 
         $parameterParser = new ParameterParser;
-        $result = $reflectedGetHeaderValue->invokeArgs($parameterParser, [
-            $mockRequest,
-            [
-                'name' => 'Some-Header',
-                'type' => 'string',
-            ],
-        ]);
+        $result = $reflectedGetHeaderValue->invokeArgs(
+            $parameterParser, [
+                $mockRequest,
+                [
+                    'name' => 'Some-Header',
+                    'type' => 'string',
+                ],
+            ]
+        );
 
         $this->assertEquals($headerValue, $result);
     }
@@ -306,13 +320,16 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedGetHeaderValue->setAccessible(true);
 
         $parameterParser = new ParameterParser;
-        $result = $reflectedGetHeaderValue->invokeArgs($parameterParser, [
-            $mockRequest,
+        $result = $reflectedGetHeaderValue->invokeArgs(
+            $parameterParser,
             [
-                'name' => 'Some-Header',
-                'type' => 'array',
-            ],
-        ]);
+                $mockRequest,
+                [
+                    'name' => 'Some-Header',
+                    'type' => 'array',
+                ],
+            ]
+        );
 
         $this->assertEquals($headerValue, $result);
     }
@@ -332,11 +349,14 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedGetPathValue->setAccessible(true);
 
         $parameterParser = new ParameterParser;
-        $result = $reflectedGetPathValue->invokeArgs($parameterParser, [
-            $mockRequest,
-            [ 'name' => 'id' ],
-            '/path/{id}',
-        ]);
+        $result = $reflectedGetPathValue->invokeArgs(
+            $parameterParser,
+            [
+                $mockRequest,
+                [ 'name' => 'id' ],
+                '/path/{id}',
+            ]
+        );
 
         $this->assertNull($result);
     }
@@ -356,14 +376,17 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedGetPathValue->setAccessible(true);
 
         $parameterParser = new ParameterParser;
-        $result = $reflectedGetPathValue->invokeArgs($parameterParser, [
-            $mockRequest,
+        $result = $reflectedGetPathValue->invokeArgs(
+            $parameterParser,
             [
-                'name' => 'id',
-                'type' => 'string',
-            ],
-            '/path/{id}',
-        ]);
+                $mockRequest,
+                [
+                    'name' => 'id',
+                    'type' => 'string',
+                ],
+                '/path/{id}',
+            ]
+        );
 
         $this->assertEquals('1234', $result);
     }
@@ -383,14 +406,17 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedGetPathValue->setAccessible(true);
 
         $parameterParser = new ParameterParser;
-        $result = $reflectedGetPathValue->invokeArgs($parameterParser, [
-            $mockRequest,
+        $result = $reflectedGetPathValue->invokeArgs(
+            $parameterParser,
             [
-                'name' => 'id',
-                'type' => 'array',
-            ],
-            '/path/{id}',
-        ]);
+                $mockRequest,
+                [
+                    'name' => 'id',
+                    'type' => 'array',
+                ],
+                '/path/{id}',
+            ]
+        );
 
         $this->assertEquals([
             '1234',
@@ -409,7 +435,10 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedGetBodyValue->setAccessible(true);
 
         $parameterParser = new ParameterParser;
-        $result = $reflectedGetBodyValue->invokeArgs($parameterParser, [ $mockRequest ]);
+        $result = $reflectedGetBodyValue->invokeArgs(
+            $parameterParser,
+            [ $mockRequest ]
+        );
 
         $this->assertSame('123', $result);
     }
@@ -518,7 +547,10 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedGetDelimiter->setAccessible(true);
 
         $parameterParser = new ParameterParser;
-        $result = $reflectedGetDelimiter->invokeArgs($parameterParser, [[]]);
+        $result = $reflectedGetDelimiter->invokeArgs(
+            $parameterParser,
+            [[]]
+        );
     }
 
     /**
