@@ -223,6 +223,7 @@ class ParameterParser
      */
     protected function formatObject($value)
     {
+        // todo this should probably loop through things and format accordingly
         $object = json_decode($value);
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new Exception\BadRequest;
