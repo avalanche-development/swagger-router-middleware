@@ -570,54 +570,13 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         );
     }
 
-    public function testCastTypeDefaultsToType()
-    {
-        // if schema 'type' is used, will fail due to invalid type
-        $parameter = [
-            'in' => 'path',
-            'type' => 'integer',
-            'schema' => [ 'type' => 'invalid' ],
-        ];
-
-        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
-        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
-        $reflectedCastType->setAccessible(true);
-
-        $parameterParser = new ParameterParser;
-        $reflectedCastType->invokeArgs(
-            $parameterParser,
-            [
-                '',
-                $parameter,
-            ]
-        );
-    }
-
-    public function testCastTypeBodyUsesSchemaType()
-    {
-        // if default 'type' is used, will fail due to invalid type
-        $parameter = [
-            'in' => 'body',
-            'type' => 'invalid',
-            'schema' => [ 'type' => 'integer' ],
-        ];
-
-        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
-        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
-        $reflectedCastType->setAccessible(true);
-
-        $parameterParser = new ParameterParser;
-        $reflectedCastType->invokeArgs(
-            $parameterParser,
-            [
-                '',
-                $parameter,
-            ]
-        );
-    }
-
     public function testCastTypeHandlesArray()
     {
+        $parameter = [
+            'items' => [
+                'type' => 'string',
+            ],
+        ];
         $value = [
             123,
             456,
@@ -630,15 +589,19 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedCastType = $reflectedParameterParser->getMethod('castType');
         $reflectedCastType->setAccessible(true);
 
-        $parameterParser = new ParameterParser;
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getParameterType' ])
+            ->getMock();
+        $parameterParser->expects($this->exactly(3))
+            ->method('getParameterType')
+            ->with($this->isType('array'))
+            ->will($this->onConsecutiveCalls('array', 'string', 'string'));
+
         $result = $reflectedCastType->invokeArgs(
             $parameterParser,
             [
                 $value,
-                [
-                    'type' => 'array',
-                    'items' => [ 'type' => 'string' ],
-                ],
+                $parameter,
             ]
         );
 
@@ -647,18 +610,28 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testCastTypeHandlesBoolean()
     {
+        $parameter = [
+            'some value'
+        ];
         $value = 'false';
 
         $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
         $reflectedCastType = $reflectedParameterParser->getMethod('castType');
         $reflectedCastType->setAccessible(true);
 
-        $parameterParser = new ParameterParser;
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getParameterType' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('getParameterType')
+            ->with($parameter)
+            ->willReturn('boolean');
+
         $result = $reflectedCastType->invokeArgs(
             $parameterParser,
             [
                 $value,
-                [ 'type' => 'boolean' ],
+                $parameter,
             ]
         );
 
@@ -672,18 +645,28 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testCastTypeHandlesInteger()
     {
+        $parameter = [
+            'some value'
+        ];
         $value = '245';
 
         $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
         $reflectedCastType = $reflectedParameterParser->getMethod('castType');
         $reflectedCastType->setAccessible(true);
 
-        $parameterParser = new ParameterParser;
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getParameterType' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('getParameterType')
+            ->with($parameter)
+            ->willReturn('integer');
+
         $result = $reflectedCastType->invokeArgs(
             $parameterParser,
             [
                 $value,
-                [ 'type' => 'integer' ],
+                $parameter,
             ]
         );
 
@@ -692,18 +675,28 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testCastTypeHandlesNumber()
     {
+        $parameter = [
+            'some value',
+        ];
         $value = '3.141592';
 
         $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
         $reflectedCastType = $reflectedParameterParser->getMethod('castType');
         $reflectedCastType->setAccessible(true);
 
-        $parameterParser = new ParameterParser;
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getParameterType' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('getParameterType')
+            ->with($parameter)
+            ->willReturn('number');
+
         $result = $reflectedCastType->invokeArgs(
             $parameterParser,
             [
                 $value,
-                [ 'type' => 'number' ],
+                $parameter,
             ]
         );
 
@@ -712,6 +705,9 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testCastTypeHandlesObject()
     {
+        $parameter = [
+            'some value',
+        ];
         $value = (object) [
             'key' => 'value',
         ];
@@ -721,18 +717,22 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedCastType->setAccessible(true);
 
         $parameterParser = $this->getMockBuilder(ParameterParser::class)
-            ->setMethods([ 'formatObject' ])
+            ->setMethods([ 'formatObject', 'getParameterType' ])
             ->getMock();
         $parameterParser->expects($this->once())
             ->method('formatObject')
             ->with(json_encode($value))
             ->will($this->returnCallback('json_decode'));
+        $parameterParser->expects($this->once())
+            ->method('getParameterType')
+            ->with($parameter)
+            ->willReturn('object');
 
         $result = $reflectedCastType->invokeArgs(
             $parameterParser,
             [
                 json_encode($value),
-                [ 'type' => 'object' ],
+                $parameter,
             ]
         );
 
@@ -741,22 +741,26 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testCastTypeHandlesString()
     {
-        $value = 1337;
         $parameter = [
-            'type' => 'string',
+            'some value',
         ];
+        $value = 1337;
 
         $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
         $reflectedCastType = $reflectedParameterParser->getMethod('castType');
         $reflectedCastType->setAccessible(true);
 
         $parameterParser = $this->getMockBuilder(ParameterParser::class)
-            ->setMethods([ 'formatString' ])
+            ->setMethods([ 'formatString', 'getParameterType' ])
             ->getMock();
         $parameterParser->expects($this->once())
             ->method('formatString')
             ->with($value, $parameter)
             ->will($this->returnArgument(0));
+        $parameterParser->expects($this->once())
+            ->method('getParameterType')
+            ->with($parameter)
+            ->willReturn('string');
 
         $result = $reflectedCastType->invokeArgs(
             $parameterParser,
@@ -775,18 +779,79 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
      */
     public function testCastTypeBailsOnUnknownType()
     {
+        $parameter = [
+            'some value',
+        ];
+
         $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
         $reflectedCastType = $reflectedParameterParser->getMethod('castType');
         $reflectedCastType->setAccessible(true);
 
-        $parameterParser = new ParameterParser;
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getParameterType' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('getParameterType')
+            ->with($parameter)
+            ->willReturn('invalid');
+
         $reflectedCastType->invokeArgs(
             $parameterParser,
             [
                 '',
-                [ 'type' => 'invalid' ],
+                $parameter,
             ]
         );
+    }
+
+    public function testGetParameterTypeDefaultsToType()
+    {
+        $parameter = [
+            'in' => 'path',
+            'type' => 'good type',
+            'schema' => [
+                'type' => 'bad type',
+            ],
+        ];
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetParameterType = $reflectedParameterParser->getMethod('getParameterType');
+        $reflectedGetParameterType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetParameterType->invokeArgs(
+            $parameterParser,
+            [
+                $parameter,
+            ]
+        );
+
+        $this->assertEquals('good type', $result);
+    }
+
+    public function testGetParameterTypeBodyUsesSchemaType()
+    {
+        $parameter = [
+            'in' => 'body',
+            'type' => 'bad type',
+            'schema' => [
+                'type' => 'good type',
+            ],
+        ];
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetParameterType = $reflectedParameterParser->getMethod('getParameterType');
+        $reflectedGetParameterType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetParameterType->invokeArgs(
+            $parameterParser,
+            [
+                $parameter,
+            ]
+        );
+
+        $this->assertEquals('good type', $result);
     }
 
     public function testFormatObjectReturnsObject()

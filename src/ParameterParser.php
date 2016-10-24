@@ -176,12 +176,7 @@ class ParameterParser
      */
     protected function castType($value, array $parameter)
     {
-        if (isset($parameter['type'])) {
-            $type = $parameter['type'];
-        }
-        if (isset($parameter['in']) && $parameter['in'] === 'body') {
-            $type = $parameter['schema']['type'];
-        }
+        $type = $this->getParameterType($parameter);
 
         switch ($type) {
             case 'array':
@@ -215,6 +210,27 @@ class ParameterParser
         }
 
         return $value;
+    }
+
+    /**
+     * @param array $parameter
+     * @return string
+     */
+    protected function getParameterType(array $parameter)
+    {
+        $type = '';
+
+        if (isset($parameter['type'])) {
+            $type = $parameter['type'];
+        }
+        if (isset($parameter['in']) && $parameter['in'] === 'body') {
+            $type = $parameter['schema']['type'];
+        }
+
+        if (empty($type)) {
+            throw new \Exception('undefined parameter type');
+        }
+        return $type;
     }
 
     /**
