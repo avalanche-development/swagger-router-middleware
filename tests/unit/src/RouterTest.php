@@ -164,7 +164,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
-            ->setMethods([ 'isDocumentationRoute', 'matchPath' ])
+            ->setMethods([
+                'isDocumentationRoute',
+                'matchPath',
+            ])
             ->getMock();
         $router->expects($this->once())
             ->method('isDocumentationRoute')
@@ -210,7 +213,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
-            ->setMethods([ 'isDocumentationRoute', 'matchPath' ])
+            ->setMethods([
+                'isDocumentationRoute',
+                'matchPath',
+            ])
             ->getMock();
         $router->expects($this->once())
             ->method('isDocumentationRoute')
@@ -270,7 +276,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
-            ->setMethods([ 'isDocumentationRoute', 'matchPath' ])
+            ->setMethods([
+                'isDocumentationRoute',
+                'matchPath',
+            ])
             ->getMock();
         $router->expects($this->once())
             ->method('isDocumentationRoute')
@@ -336,6 +345,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods([
                 'getParameters',
+                'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
                 'matchPath',
@@ -344,6 +354,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router->expects($this->once())
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getSecurity')
+            ->with(current($path)['get'], [ 'paths' => $path ])
             ->willReturn([]);
         $router->expects($this->once())
             ->method('hydrateParameterValues')
@@ -423,6 +437,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods([
                 'getParameters',
+                'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
                 'matchPath',
@@ -433,6 +448,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->with(current($path), current($path)['get'])
             ->willReturn([ $parameter ]);
         $router->expects($this->once())
+            ->method('getSecurity')
+            ->with(current($path)['get'], [ 'paths' => $path ])
+            ->willReturn([]);
+        $router->expects($this->once())
             ->method('hydrateParameterValues')
             ->with(
                 $this->isInstanceOf(ParameterParser::class),
@@ -441,6 +460,97 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 key($path)
             )
             ->willReturn([ $parameter ]);
+        $router->expects($this->once())
+            ->method('isDocumentationRoute')
+            ->with($mockRequest)
+            ->willReturn(false);
+        $router->expects($this->once())
+            ->method('matchPath')
+            ->with($mockRequest, key($path))
+            ->willReturn(true);
+
+        $reflectedLogger->setValue($router, $mockLogger);
+        $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
+
+        $result = $router($mockRequest, $mockResponse, $callback);
+
+        $this->assertSame($mockResponse, $result);
+    }
+
+    public function testInvokationReturnsSecurity()
+    {
+        $path = [
+            '/test-path' => [
+                'get' => [
+                    'description' => 'Some operation',
+                    'responses' => [],
+                ],
+            ],
+        ];
+
+        $security = [
+            'some security',
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedLogger = $reflectedRouter->getProperty('logger');
+        $reflectedLogger->setAccessible(true);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $mockLogger = $this->createMock(Logger::class);
+
+        $mockUri = $this->createMock(Uri::class);
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('GET');
+        $mockRequest->expects($this->once())
+            ->method('withAttribute')
+            ->with('swagger', [
+                'apiPath' => key($path),
+                'path' => current($path),
+                'operation' => current($path)['get'],
+                'params' => [],
+                'security' => $security,
+            ])
+            ->will($this->returnSelf());
+
+        $mockResponse = $this->createMock(Response::class);
+
+        $callback = function ($request, $response) {
+            return $response;
+        };
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'getParameters',
+                'getSecurity',
+                'hydrateParameterValues',
+                'isDocumentationRoute',
+                'matchPath',
+              ])
+            ->getMock();
+        $router->expects($this->once())
+            ->method('getParameters')
+            ->with(current($path), current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getSecurity')
+            ->with(current($path)['get'], [ 'paths' => $path ])
+            ->willReturn($security);
+        $router->expects($this->once())
+            ->method('hydrateParameterValues')
+            ->with(
+                $this->isInstanceOf(ParameterParser::class),
+                $mockRequest,
+                [],
+                key($path)
+            )
+            ->willReturn([]);
         $router->expects($this->once())
             ->method('isDocumentationRoute')
             ->with($mockRequest)
@@ -821,5 +931,68 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'value' => 'value two',
             ],
         ], $result);
+    }
+
+    public function testGetSecurityReturnsOperationSecurity()
+    {
+        $swagger = [
+            'security' => [
+                'invalid',
+            ],
+        ];
+
+        $operation = [
+            'security' => [
+                'valid',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
+        $reflectedGetSecurity->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedGetSecurity->invokeArgs($router, [
+            $operation,
+            $swagger,
+        ]);
+
+        $this->assertEquals($operation['security'], $result);
+    }
+
+    public function testGetSecurityReturnsGlobalSecurity()
+    {
+        $swagger = [
+            'security' => [
+                'invalid',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
+        $reflectedGetSecurity->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedGetSecurity->invokeArgs($router, [
+            [],
+            $swagger,
+        ]);
+
+        $this->assertEquals($swagger['security'], $result);
+    }
+
+    public function testGetSecurityReturnsEmptyAsDefault()
+    {
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
+        $reflectedGetSecurity->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedGetSecurity->invokeArgs($router, [
+            [],
+            [],
+        ]);
+
+        $this->assertEquals([], $result);
     }
 }
