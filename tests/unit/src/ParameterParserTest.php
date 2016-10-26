@@ -854,6 +854,23 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('good type', $result);
     }
 
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage undefined parameter type
+     */
+    public function testGetParameterTypeBailsOnEmptyType()
+    {
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetParameterType = $reflectedParameterParser->getMethod('getParameterType');
+        $reflectedGetParameterType->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $reflectedGetParameterType->invokeArgs(
+            $parameterParser,
+            [[]]
+        );
+    }
+
     public function testFormatObjectReturnsObject()
     {
         $value = (object) [
