@@ -4,4 +4,6 @@ namespace AvalancheDevelopment\SwaggerRouterMiddleware\Exception;
 
 use Exception;
 
-class BadRequest extends Exception {}
+class BadRequest extends Exception
+{
+}
