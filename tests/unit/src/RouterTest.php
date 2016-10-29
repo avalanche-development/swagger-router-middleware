@@ -380,6 +380,145 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $this->assertSame($mockResponse, $result);
     }
 
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage some exception
+     */
+    public function testInvokationBailsOnParameterException()
+    {
+        $path = [
+            '/test-path' => [
+                'get' => [
+                    'description' => 'Some operation',
+                    'responses' => [],
+                ],
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $mockUri = $this->createMock(Uri::class);
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('GET');
+        $mockRequest->expects($this->never())
+            ->method('withAttribute');
+
+        $mockResponse = $this->createMock(Response::class);
+
+        $callback = function ($request, $response) {
+            throw new \Exception('callback should not be called');
+        };
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'hydrateParameterValues',
+                'isDocumentationRoute',
+                'matchPath',
+            ])
+            ->getMock();
+        $router->expects($this->once())
+            ->method('hydrateParameterValues')
+            ->with(
+                $this->isInstanceOf(ParameterParser::class),
+                $mockRequest,
+                [],
+                key($path)
+            )
+            ->will($this->throwException(new \Exception('some exception')));
+        $router->expects($this->once())
+            ->method('isDocumentationRoute')
+            ->with($mockRequest)
+            ->willReturn(false);
+        $router->expects($this->once())
+            ->method('matchPath')
+            ->with($mockRequest, key($path))
+            ->willReturn(true);
+
+        $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
+
+        $router($mockRequest, $mockResponse, $callback);
+    }
+
+    public function testInvokationBailsOnBadParameter()
+    {
+        $path = [
+            '/test-path' => [
+                'get' => [
+                    'description' => 'Some operation',
+                    'responses' => [],
+                ],
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $mockUri = $this->createMock(Uri::class);
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('GET');
+        $mockRequest->expects($this->never())
+            ->method('withAttribute');
+
+        $mockResponse = $this->createMock(Response::class);
+        $mockResponse->expects($this->once())
+            ->method('withStatus')
+            ->with('400')
+            ->will($this->returnSelf());
+
+
+        $callback = function ($request, $response) {
+            throw new \Exception('callback should not be called');
+        };
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'hydrateParameterValues',
+                'isDocumentationRoute',
+                'log',
+                'matchPath',
+            ])
+            ->getMock();
+        $router->expects($this->once())
+            ->method('hydrateParameterValues')
+            ->with(
+                $this->isInstanceOf(ParameterParser::class),
+                $mockRequest,
+                [],
+                key($path)
+            )
+            ->will($this->throwException(new Exception\BadRequest('some exception')));
+        $router->expects($this->once())
+            ->method('isDocumentationRoute')
+            ->with($mockRequest)
+            ->willReturn(false);
+        $router->expects($this->once())
+            ->method('log')
+            ->with('Bad request: some exception');
+        $router->expects($this->once())
+            ->method('matchPath')
+            ->with($mockRequest, key($path))
+            ->willReturn(true);
+
+        $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
+
+        $result = $router($mockRequest, $mockResponse, $callback);
+
+        $this->assertSame($mockResponse, $result);
+    }
+
     public function testInvokationReturnsParameters()
     {
         $path = [

@@ -84,7 +84,7 @@ class Router implements LoggerAwareInterface
             $parameters = $this->getParameters($pathItem, $operation);
             $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
         } catch (Exception\BadRequest $e) {
-            $this->log('Bad request: ', $e->getMessage());
+            $this->log("Bad request: {$e->getMessage()}");
             // todo header
             $response = $response->withStatus(400);
             return $response;
