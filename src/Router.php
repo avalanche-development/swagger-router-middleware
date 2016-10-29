@@ -80,9 +80,15 @@ class Router implements LoggerAwareInterface
 
         $operation = $pathItem[$method];
 
-        // todo wrap in catch block for 400-level responses
-        $parameters = $this->getParameters($pathItem, $operation);
-        $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
+        try {
+            $parameters = $this->getParameters($pathItem, $operation);
+            $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
+        } catch (Exception\BadRequest $e) {
+            $this->log('Bad request: ', $e->getMessage());
+            // todo header
+            $response = $response->withStatus(400);
+            return $response;
+        }
 
         $security = $this->getSecurity($operation, $this->swagger);
 
