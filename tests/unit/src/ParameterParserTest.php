@@ -153,19 +153,20 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testGetQueryValueReturnsNullIfUnmatched()
     {
-        $mockUri = $this->createMock(UriInterface::class);
-        $mockUri->method('getQuery')
-            ->willReturn('some_variable=bar');
-
         $mockRequest = $this->createMock(RequestInterface::class);
-        $mockRequest->method('getUri')
-            ->willReturn($mockUri);
 
         $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
         $reflectedGetQueryValue = $reflectedParameterParser->getMethod('getQueryValue');
         $reflectedGetQueryValue->setAccessible(true);
 
-        $parameterParser = new ParameterParser;
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'parseQueryString' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('parseQueryString')
+            ->with($mockRequest)
+            ->willReturn([ 'some_variable' => 'value' ]);
+
         $result = $reflectedGetQueryValue->invokeArgs(
             $parameterParser,
             [
@@ -177,21 +178,27 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $this->assertNull($result);
     }
 
-    public function testGetQueryValueReturnsValueIfMatched()
+    public function testGetQueryValueReturnsValueIfMatchedAndNonArray()
     {
-        $mockUri = $this->createMock(UriInterface::class);
-        $mockUri->method('getQuery')
-            ->willReturn('some_variable=value');
-
         $mockRequest = $this->createMock(RequestInterface::class);
-        $mockRequest->method('getUri')
-            ->willReturn($mockUri);
 
         $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
         $reflectedGetQueryValue = $reflectedParameterParser->getMethod('getQueryValue');
         $reflectedGetQueryValue->setAccessible(true);
 
-        $parameterParser = new ParameterParser;
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([
+                'explodeValue',
+                'parseQueryString',
+            ])
+            ->getMock();
+        $parameterParser->expects($this->never())
+            ->method('explodeValue');
+        $parameterParser->expects($this->once())
+            ->method('parseQueryString')
+            ->with($mockRequest)
+            ->willReturn([ 'some_variable' => 'value' ]);
+
         $result = $reflectedGetQueryValue->invokeArgs(
             $parameterParser,
             [
@@ -206,7 +213,45 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('value', $result);
     }
 
-    public function testGetQueryValueReturnsExplodedValueIfMatched()
+    public function testGetQueryValueReturnsArrayIfMatchedMulti()
+    {
+        $parameter = [
+            'name' => 'some_variable',
+            'type' => 'array',
+            'collectionFormat' => 'multi',
+        ];
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetQueryValue = $reflectedParameterParser->getMethod('getQueryValue');
+        $reflectedGetQueryValue->setAccessible(true);
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([
+                'explodeValue',
+                'parseQueryString',
+            ])
+            ->getMock();
+        $parameterParser->expects($this->never())
+            ->method('explodeValue');
+        $parameterParser->expects($this->once())
+            ->method('parseQueryString')
+            ->with($mockRequest)
+            ->willReturn([ 'some_variable' => 'some-value' ]);
+
+        $result = $reflectedGetQueryValue->invokeArgs(
+            $parameterParser,
+            [
+                $mockRequest,
+                $parameter,
+            ]
+        );
+
+        $this->assertEquals([ 'some-value' ], $result);
+    }
+
+    public function testGetQueryValueReturnsExplodedValueIfMatchedArray()
     {
         $parameter = [
             'name' => 'some_variable',
@@ -218,25 +263,26 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
             'some-other-value',
         ];
 
-        $mockUri = $this->createMock(UriInterface::class);
-        $mockUri->method('getQuery')
-            ->willReturn('some_variable=value');
-
         $mockRequest = $this->createMock(RequestInterface::class);
-        $mockRequest->method('getUri')
-            ->willReturn($mockUri);
 
         $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
         $reflectedGetQueryValue = $reflectedParameterParser->getMethod('getQueryValue');
         $reflectedGetQueryValue->setAccessible(true);
 
         $parameterParser = $this->getMockBuilder(ParameterParser::class)
-            ->setMethods([ 'explodeValue' ])
+            ->setMethods([
+                'explodeValue',
+                'parseQueryString',
+            ])
             ->getMock();
         $parameterParser->expects($this->once())
             ->method('explodeValue')
             ->with('value', $parameter)
             ->willReturn($value);
+        $parameterParser->expects($this->once())
+            ->method('parseQueryString')
+            ->with($mockRequest)
+            ->willReturn([ 'some_variable' => 'value' ]);
 
         $result = $reflectedGetQueryValue->invokeArgs(
             $parameterParser,
