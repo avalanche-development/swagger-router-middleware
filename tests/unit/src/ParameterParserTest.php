@@ -489,6 +489,100 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $this->assertSame('123', $result);
     }
 
+    public function testParseQueryStringHandlesArraySyntax()
+    {
+        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri->method('getQuery')
+            ->willReturn('id[]=1');
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedExplodeValue = $reflectedParameterParser->getMethod('parseQueryString');
+        $reflectedExplodeValue->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedExplodeValue->invokeArgs(
+            $parameterParser,
+            [ $mockRequest ]
+        );
+
+        $this->assertArrayHasKey('id', $result);
+    }
+
+    public function testParseQueryStringHandlesMultiSyntax()
+    {
+        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri->method('getQuery')
+            ->willReturn('id=1');
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedExplodeValue = $reflectedParameterParser->getMethod('parseQueryString');
+        $reflectedExplodeValue->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedExplodeValue->invokeArgs(
+            $parameterParser,
+            [ $mockRequest ]
+        );
+
+        $this->assertArrayHasKey('id', $result);
+    }
+
+    public function testParseQueryStringFlattensParams()
+    {
+        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri->method('getQuery')
+            ->willReturn('id=1');
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedExplodeValue = $reflectedParameterParser->getMethod('parseQueryString');
+        $reflectedExplodeValue->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedExplodeValue->invokeArgs(
+            $parameterParser,
+            [ $mockRequest ]
+        );
+
+        $this->assertEquals([ 'id' => 1 ], $result);
+    }
+
+    public function testParseQueryStringExpandsMultipleParams()
+    {
+        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri->method('getQuery')
+            ->willReturn('id=1&id=2');
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedExplodeValue = $reflectedParameterParser->getMethod('parseQueryString');
+        $reflectedExplodeValue->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedExplodeValue->invokeArgs(
+            $parameterParser,
+            [ $mockRequest ]
+        );
+
+        $this->assertEquals([
+            'id' => [ 1, 2 ],
+        ], $result);
+    }
+
     public function testExplodeValue()
     {
         $parameter = [
