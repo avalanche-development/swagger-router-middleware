@@ -105,6 +105,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->with(200)
             ->will($this->returnSelf());
         $mockResponse->expects($this->once())
+            ->method('withHeader')
+            ->with('Content-type', 'application/json')
+            ->will($this->returnSelf());
+        $mockResponse->expects($this->once())
             ->method('getBody')
             ->willReturn($mockBody);
 

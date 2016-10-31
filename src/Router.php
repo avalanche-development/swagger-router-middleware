@@ -51,7 +51,7 @@ class Router implements LoggerAwareInterface
             }
 
             $response = $response->withStatus(200);
-            // todo header
+            $response = $response->withHeader('Content-type', 'application/json');
             $response->getBody()->write($swaggerDoc);
             return $response;
         }
