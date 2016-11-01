@@ -1031,7 +1031,8 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException AvalancheDevelopment\SwaggerRouterMiddleware\Exception\BadRequest
+     * @expectedException AvalancheDevelopment\Peel\HttpError\BadRequest
+     * @expectedExceptionMessage Bad json object passed in as parameter
      */
     public function testFormatObjectBailsOnBadObject()
     {
@@ -1090,7 +1091,8 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException AvalancheDevelopment\SwaggerRouterMiddleware\Exception\BadRequest
+     * @expectedException AvalancheDevelopment\Peel\HttpError\BadRequest
+     * @expectedExceptionMessage Invalid date parameter passed in
      */
     public function testFormatStringHandlesDateFailures()
     {
@@ -1132,7 +1134,8 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException AvalancheDevelopment\SwaggerRouterMiddleware\Exception\BadRequest
+     * @expectedException AvalancheDevelopment\Peel\HttpError\BadRequest
+     * @expectedExceptionMessage Invalid date parameter passed in
      */
     public function testFormatStringHandlesDateTimeFailures()
     {
