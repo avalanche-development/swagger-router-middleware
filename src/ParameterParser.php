@@ -2,6 +2,7 @@
 
 namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
+use AvalancheDevelopment\Peel\HttpError\BadRequest;
 use DateTime;
 use Psr\Http\Message\RequestInterface as Request;
 
@@ -272,7 +273,7 @@ class ParameterParser
         // todo this should probably loop through things and format accordingly
         $object = json_decode($value);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception\BadRequest;
+            throw new BadRequest('Bad json object passed in as parameter');
         }
         return $object;
     }
@@ -292,14 +293,14 @@ class ParameterParser
             case 'date':
                 $value = DateTime::createFromFormat('Y-m-d', $value);
                 if (!$value) {
-                    throw new Exception\BadRequest;
+                    throw new BadRequest('Invalid date parameter passed in');
                 }
                 break;
             case 'date-time':
                 try {
                     $value = new DateTime($value);
                 } catch (\Exception $e) {
-                    throw new Exception\BadRequest('', 0, $e);
+                    throw new BadRequest('Invalid date parameter passed in');
                 }
                 break;
             default:
