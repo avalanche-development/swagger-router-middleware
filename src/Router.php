@@ -10,6 +10,8 @@
 
 namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
+use AvalancheDevelopment\Peel\HttpError\MethodNotAllowed;
+use AvalancheDevelopment\Peel\HttpError\NotFound;
 use Psr\Http\Message\RequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Log\LoggerAwareInterface;
@@ -64,32 +66,18 @@ class Router implements LoggerAwareInterface
             }
         }
         if (!$matchedPath) {
-            $this->log('No match found in swagger docs - 404');
-            // todo header
-            $response = $response->withStatus(404);
-            return $response;
+            throw new NotFound('No match found in swagger docs');
         }
 
         $method = strtolower($request->getMethod());
         if (!array_key_exists($method, $pathItem)) {
-            $this->log('No method for this route - 405');
-            // todo header
-            $response = $response->withStatus(405);
-            return $response;
+            throw new MethodNotAllowed('No method found for this route');
         }
 
         $operation = $pathItem[$method];
 
-        try {
-            $parameters = $this->getParameters($pathItem, $operation);
-            $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
-        } catch (Exception\BadRequest $e) {
-            $this->log("Bad request: {$e->getMessage()}");
-            // todo header
-            $response = $response->withStatus(400);
-            return $response;
-        }
-
+        $parameters = $this->getParameters($pathItem, $operation);
+        $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
         $security = $this->getSecurity($operation, $this->swagger);
 
         $request = $request->withAttribute('swagger', [
