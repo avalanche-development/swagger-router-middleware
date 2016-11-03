@@ -97,7 +97,10 @@ class Router implements LoggerAwareInterface
      */
     protected function isDocumentationRoute(Request $request)
     {
-        return ($request->getUri()->getPath() === '/api-docs');
+        return (
+            $request->getMethod() === 'GET' &&
+            $request->getUri()->getPath() === '/api-docs'
+        );
     }
 
     /**

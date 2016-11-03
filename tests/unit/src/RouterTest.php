@@ -611,17 +611,14 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $this->assertSame($mockResponse, $result);
     }
 
-    public function testIsDocumentationRouteReturnsTrueOnMatch()
+    public function testIsDocumentationRouteFailsIfNotGet()
     {
-        $path = '/api-docs';
-
-        $mockUri = $this->createMock(Uri::class);
-        $mockUri->method('getPath')
-            ->willReturn($path);
-
         $mockRequest = $this->createMock(Request::class);
-        $mockRequest->method('getUri')
-            ->willReturn($mockUri);
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('POST');
+        $mockRequest->expects($this->never())
+            ->method('getUri');
 
         $reflectedRouter = new ReflectionClass(Router::class);
         $reflectedIsDocumentationRoute = $reflectedRouter->getMethod('isDocumentationRoute');
@@ -630,19 +627,22 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = new Router([]);
         $result = $reflectedIsDocumentationRoute->invokeArgs($router, [ $mockRequest ]);
 
-        $this->assertTrue($result);
+        $this->assertFalse($result);
     }
 
-    public function testIsDocumentationRouteReturnsFalseOnUnmatch()
+    public function testIsDocumentationRouteFailsIfNotRoute()
     {
-        $path = '/invalid-path';
-
         $mockUri = $this->createMock(Uri::class);
-        $mockUri->method('getPath')
-            ->willReturn($path);
+        $mockUri->expects($this->once())
+            ->method('getPath')
+            ->willReturn('/some-path');
 
         $mockRequest = $this->createMock(Request::class);
-        $mockRequest->method('getUri')
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('GET');
+        $mockRequest->expects($this->once())
+            ->method('getUri')
             ->willReturn($mockUri);
 
         $reflectedRouter = new ReflectionClass(Router::class);
@@ -653,6 +653,31 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $result = $reflectedIsDocumentationRoute->invokeArgs($router, [ $mockRequest ]);
 
         $this->assertFalse($result);
+    }
+
+    public function testIsDocumentationRouteSucceedsIfMatch()
+    {
+        $mockUri = $this->createMock(Uri::class);
+        $mockUri->expects($this->once())
+            ->method('getPath')
+            ->willReturn('/api-docs');
+
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('GET');
+        $mockRequest->expects($this->once())
+            ->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedIsDocumentationRoute = $reflectedRouter->getMethod('isDocumentationRoute');
+        $reflectedIsDocumentationRoute->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedIsDocumentationRoute->invokeArgs($router, [ $mockRequest ]);
+
+        $this->assertTrue($result);
     }
 
     public function testMatchPathPassesMatchedNonVariablePath()
