@@ -28,13 +28,14 @@ class ParameterParser
                 $value = $this->getPathValue($request, $parameter, $route);
                 break;
             case 'formData':
-                throw new \Exception('not yet implemented');
+                // todo implement form parameters
+                throw new \Exception('Form parameters are not yet implemented');
                 break;
             case 'body':
                 $value = $this->getBodyValue($request);
                 break;
             default:
-                throw new \Exception('invalid parameter type');
+                throw new \Exception('Invalid parameter type defined in swagger');
                 break;
         }
 
@@ -62,7 +63,10 @@ class ParameterParser
         if ($parameter['type'] !== 'array') {
             return $value;
         }
-        if (isset($parameter['collectionFormat']) && $parameter['collectionFormat'] === 'multi') {
+        if (
+            isset($parameter['collectionFormat']) &&
+            $parameter['collectionFormat'] === 'multi'
+        ) {
             return (array) $value;
         }
         return $this->explodeValue($value, $parameter);
@@ -189,11 +193,8 @@ class ParameterParser
             case 'pipes':
                 $delimiter = '|';
                 break;
-            case 'multi':
-                throw new \Exception('not sure how this will work yet');
-                break;
             default:
-                throw new \Exception('invalid collection format value');
+                throw new \Exception('Invalid collection format value defined in swagger');
                 break;
         }
 
@@ -219,7 +220,8 @@ class ParameterParser
                 $value = (boolean) $value;
                 break;
             case 'file':
-                throw new \Exception('implement file');
+                // todo implemtent file types
+                throw new \Exception('File types are not yet implemented');
                 break;
             case 'integer':
                 $value = (int) $value;
@@ -236,7 +238,7 @@ class ParameterParser
                 $value = $this->formatString($value, $parameter);
                 break;
             default:
-                throw new \Exception('invalid parameter type value');
+                throw new \Exception('Invalid parameter type value defined in swagger');
                 break;
         }
 
@@ -259,7 +261,7 @@ class ParameterParser
         }
 
         if (empty($type)) {
-            throw new \Exception('undefined parameter type');
+            throw new \Exception('Parameter type is not defined in swagger');
         }
         return $type;
     }

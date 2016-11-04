@@ -114,7 +114,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     /**
      * @expectedException Exception
-     * @expectedExceptionMessage invalid parameter type
+     * @expectedExceptionMessage Invalid parameter type defined in swagger
      */
     public function testInvokeBailsOnInvalidParameterType()
     {
@@ -695,9 +695,9 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     /**
      * @expectedException Exception
-     * @expectedExceptionMessage invalid collection format value
+     * @expectedExceptionMessage Invalid collection format value defined in swagger
      */
-    public function testGetDelimiterReturnsCsvForUnknowns()
+    public function testGetDelimiterBailsForUnknownCollectionFormats()
     {
         $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
         $reflectedGetDelimiter = $reflectedParameterParser->getMethod('getDelimiter');
@@ -915,7 +915,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     /**
      * @expectedException Exception
-     * @expectedExceptionMessage invalid parameter type value
+     * @expectedExceptionMessage Invalid parameter type value defined in swagger
      */
     public function testCastTypeBailsOnUnknownType()
     {
@@ -996,7 +996,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     /**
      * @expectedException Exception
-     * @expectedExceptionMessage undefined parameter type
+     * @expectedExceptionMessage Parameter type is not defined in swagger
      */
     public function testGetParameterTypeBailsOnEmptyType()
     {
