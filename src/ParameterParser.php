@@ -63,10 +63,7 @@ class ParameterParser
         if ($parameter['type'] !== 'array') {
             return $value;
         }
-        if (
-            isset($parameter['collectionFormat']) &&
-            $parameter['collectionFormat'] === 'multi'
-        ) {
+        if (isset($parameter['collectionFormat']) && $parameter['collectionFormat'] === 'multi') {
             return (array) $value;
         }
         return $this->explodeValue($value, $parameter);
@@ -231,7 +228,7 @@ class ParameterParser
                 break;
             case 'object':
                 $value = (string) $value;
-                $value = $this->formatObject($value);
+                $value = $this->formatObject($value, $parameter);
                 break;
             case 'string':
                 $value = (string) $value;
@@ -268,15 +265,20 @@ class ParameterParser
 
     /**
      * @param string $value
+     * @param array $parameter
      * @return object
      */
-    protected function formatObject($value)
+    protected function formatObject($value, array $parameter)
     {
-        // todo this should probably loop through things and format accordingly
         $object = json_decode($value);
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new BadRequest('Bad json object passed in as parameter');
         }
+
+        foreach ($object as $key => $attribute) {
+            $object->{$key} = $this->castType($attribute, $parameter['schema']['properties'][$key]);
+        }
+
         return $object;
     }
 
