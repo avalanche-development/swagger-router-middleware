@@ -861,8 +861,8 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
             ->getMock();
         $parameterParser->expects($this->once())
             ->method('formatObject')
-            ->with(json_encode($value))
-            ->will($this->returnCallback('json_decode'));
+            ->with(json_encode($value), $parameter)
+            ->willReturn($value);
         $parameterParser->expects($this->once())
             ->method('getParameterType')
             ->with($parameter)
@@ -1013,6 +1013,16 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testFormatObjectReturnsObject()
     {
+        $parameter = [
+            'schema' => [
+                'properties' => [
+                    'key' => [
+                        'some value',
+                    ],
+                ],
+            ],
+        ];
+
         $value = (object) [
             'key' => 'value',
         ];
@@ -1021,10 +1031,20 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $reflectedFormatObject = $reflectedParameterParser->getMethod('formatObject');
         $reflectedFormatObject->setAccessible(true);
 
-        $parameterParser = new ParameterParser;
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'castType' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('castType')
+            ->with($value->key, $parameter['schema']['properties']['key'])
+            ->willReturn('value');
+
         $result = $reflectedFormatObject->invokeArgs(
             $parameterParser,
-            [ json_encode($value) ]
+            [
+                json_encode($value),
+                $parameter,
+            ]
         );
 
         $this->assertEquals($value, $result);
@@ -1045,7 +1065,10 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $parameterParser = new ParameterParser;
         $reflectedFormatObject->invokeArgs(
             $parameterParser,
-            [ $value ]
+            [
+                $value,
+                [],
+            ]
         );
     }
 

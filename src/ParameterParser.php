@@ -275,8 +275,8 @@ class ParameterParser
             throw new BadRequest('Bad json object passed in as parameter');
         }
 
-        foreach ($object as $key => $value) {
-            $object[$key] = $this->castType($value, $parameter['schema']['properties'][$key]);
+        foreach ($object as $key => $attribute) {
+            $object->{$key} = $this->castType($attribute, $parameter['schema']['properties'][$key]);
         }
 
         return $object;
