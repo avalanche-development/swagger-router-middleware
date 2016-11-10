@@ -137,6 +137,10 @@ class ParameterParser
         $setList = explode('&', $queryString);
 
         foreach ($setList as $set) {
+            if (empty($set)) {
+                continue;
+            }
+
             list($name, $value) = explode('=', $set);
             $name = urldecode($name);
             if (substr($name, -2) === '[]') {
