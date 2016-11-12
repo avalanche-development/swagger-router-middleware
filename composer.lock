@@ -9,16 +9,16 @@
     "packages": [
         {
             "name": "avalanche-development/peel",
-            "version": "0.2.0",
+            "version": "0.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/avalanche-development/peel.git",
-                "reference": "4c8357f694b956456390cbbdfc22ca7b3ab26748"
+                "reference": "77b0cac07af981bb180477f94b80e4fc40a760bd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/avalanche-development/peel/zipball/4c8357f694b956456390cbbdfc22ca7b3ab26748",
-                "reference": "4c8357f694b956456390cbbdfc22ca7b3ab26748",
+                "url": "https://api.github.com/repos/avalanche-development/peel/zipball/77b0cac07af981bb180477f94b80e4fc40a760bd",
+                "reference": "77b0cac07af981bb180477f94b80e4fc40a760bd",
                 "shasum": ""
             },
             "require": {
@@ -44,7 +44,7 @@
                     "email": "jpemeric@gmail.com"
                 }
             ],
-            "time": "2016-11-06 00:12:10"
+            "time": "2016-11-12 18:03:35"
         },
         {
             "name": "psr/http-message",
