@@ -489,6 +489,29 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $this->assertSame('123', $result);
     }
 
+    public function testParseQueryStringHandlesEmptyQuery()
+    {
+        $mockUri = $this->createMock(UriInterface::class);
+        $mockUri->method('getQuery')
+            ->willReturn('');
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedExplodeValue = $reflectedParameterParser->getMethod('parseQueryString');
+        $reflectedExplodeValue->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedExplodeValue->invokeArgs(
+            $parameterParser,
+            [ $mockRequest ]
+        );
+
+        $this->assertSame([], $result);
+    }
+
     public function testParseQueryStringHandlesArraySyntax()
     {
         $mockUri = $this->createMock(UriInterface::class);
