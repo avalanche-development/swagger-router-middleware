@@ -819,15 +819,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedGetParameters = $reflectedRouter->getMethod('getParameters');
         $reflectedGetParameters->setAccessible(true);
 
-        $router = $this->getMockBuilder(Router::class)
-            ->disableOriginalConstructor()
-            ->setMethods([ 'uniqueParameterKey' ])
-            ->getMock();
-        $router->expects($this->once())
-            ->method('uniqueParameterKey')
-            ->with(current($parameters))
-            ->willReturn('unique value');
-
+        $router = $this->createMock(Router::class);
         $result = $reflectedGetParameters->invokeArgs(
             $router,
             [
@@ -851,15 +843,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedGetParameters = $reflectedRouter->getMethod('getParameters');
         $reflectedGetParameters->setAccessible(true);
 
-        $router = $this->getMockBuilder(Router::class)
-            ->disableOriginalConstructor()
-            ->setMethods([ 'uniqueParameterKey' ])
-            ->getMock();
-        $router->expects($this->once())
-            ->method('uniqueParameterKey')
-            ->with(current($parameters))
-            ->willReturn('unique value');
-
+        $router = $this->createMock(Router::class);
         $result = $reflectedGetParameters->invokeArgs(
             $router,
             [
@@ -883,15 +867,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedGetParameters = $reflectedRouter->getMethod('getParameters');
         $reflectedGetParameters->setAccessible(true);
 
-        $router = $this->getMockBuilder(Router::class)
-            ->disableOriginalConstructor()
-            ->setMethods([ 'uniqueParameterKey' ])
-            ->getMock();
-        $router->expects($this->exactly(2))
-            ->method('uniqueParameterKey')
-            ->with(current($parameters))
-            ->willReturn('unique value');
-
+        $router = $this->createMock(Router::class);
         $result = $reflectedGetParameters->invokeArgs(
             $router,
             [
@@ -901,27 +877,6 @@ class RouterTest extends PHPUnit_Framework_TestCase
         );
 
         $this->assertEquals($parameters, $result);
-    }
-
-
-    public function testUniqueParameterKey()
-    {
-        $parameter = [
-            'name' => 'some parameter',
-            'in' => 'path',
-        ];
-
-        $reflectedRouter = new ReflectionClass(Router::class);
-        $reflectedUniqueParameterKey = $reflectedRouter->getMethod('uniqueParameterKey');
-        $reflectedUniqueParameterKey->setAccessible(true);
-
-        $router = new Router([]);
-        $result = $reflectedUniqueParameterKey->invokeArgs(
-            $router,
-            [ $parameter ]
-        );
-
-        $this->assertEquals("{$parameter['name']}-{$parameter['in']}", $result);
     }
 
     public function testHydrateParameterValuesHandlesNoParameters()
@@ -990,11 +945,11 @@ class RouterTest extends PHPUnit_Framework_TestCase
         );
 
         $this->assertEquals([
-            [
+            'parameter one' => [
                 'name' => 'parameter one',
                 'value' => 'value one',
             ],
-            [
+            'parameter two' => [
                 'name' => 'parameter two',
                 'value' => 'value two',
             ],

@@ -135,27 +135,16 @@ class Router implements LoggerAwareInterface
         $uniqueParameters = [];
         if (array_key_exists('parameters', $pathItem)) {
             foreach ($pathItem['parameters'] as $parameter) {
-                $key = $this->uniqueParameterKey($parameter);
-                $uniqueParameters[$key] = $parameter;
+                $uniqueParameters[$parameter['name']] = $parameter;
             }
         }
         if (array_key_exists('parameters', $operation)) {
             foreach ($operation['parameters'] as $parameter) {
-                $key = $this->uniqueParameterKey($parameter);
-                $uniqueParameters[$key] = $parameter;
+                $uniqueParameters[$parameter['name']] = $parameter;
             }
         }
 
         return array_values($uniqueParameters);
-    }
-
-    /**
-     * @param array $parameter
-     * @return string
-     */
-    protected function uniqueParameterKey(array $parameter)
-    {
-        return "{$parameter['name']}-{$parameter['in']}";
     }
 
     /**
@@ -171,10 +160,13 @@ class Router implements LoggerAwareInterface
         array $parameters,
         $route
     ) {
-        return array_map(function ($parameter) use ($parser, $request, $route) {
+        $hydratedParameters = [];
+        foreach ($parameters as $parameter) {
             $parameter['value'] = $parser($request, $parameter, $route);
-            return $parameter;
-        }, $parameters);
+            $hydratedParameters[$parameter['name']] = $parameter;
+        }
+
+        return $hydratedParameters;
     }
 
     /**
