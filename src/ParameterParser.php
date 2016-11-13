@@ -221,7 +221,7 @@ class ParameterParser
                 $value = (boolean) $value;
                 break;
             case 'file':
-                // todo implemtent file types
+                // todo implement file types
                 throw new \Exception('File types are not yet implemented');
                 break;
             case 'integer':
@@ -231,7 +231,6 @@ class ParameterParser
                 $value = (float) $value;
                 break;
             case 'object':
-                $value = (string) $value;
                 $value = $this->formatObject($value, $parameter);
                 break;
             case 'string':
@@ -274,13 +273,19 @@ class ParameterParser
      */
     protected function formatObject($value, array $parameter)
     {
-        $object = json_decode($value);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new BadRequest('Bad json object passed in as parameter');
+        $object = $value;
+        if (!is_object($object)) {
+            $object = (string) $object;
+            $object = json_decode($object);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new BadRequest('Bad json object passed in as parameter');
+            }
         }
 
         foreach ($object as $key => $attribute) {
-            $object->{$key} = $this->castType($attribute, $parameter['schema']['properties'][$key]);
+            $schema = array_key_exists('schema', $parameter) ? $parameter['schema'] : $parameter;
+            $properties = $schema['properties'][$key];
+            $object->{$key} = $this->castType($attribute, $properties);
         }
 
         return $object;

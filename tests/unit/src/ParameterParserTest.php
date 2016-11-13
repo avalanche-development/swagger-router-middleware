@@ -1034,7 +1034,46 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         );
     }
 
-    public function testFormatObjectReturnsObject()
+    public function testFormatObjectHandlesObject()
+    {
+        $parameter = [
+            'schema' => [
+                'properties' => [
+                    'key' => [
+                        'some value',
+                    ],
+                ],
+            ],
+        ];
+
+        $value = (object) [
+            'key' => 'value',
+        ];
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedFormatObject = $reflectedParameterParser->getMethod('formatObject');
+        $reflectedFormatObject->setAccessible(true);
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'castType' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('castType')
+            ->with($value->key, $parameter['schema']['properties']['key'])
+            ->willReturn('value');
+
+        $result = $reflectedFormatObject->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                $parameter,
+            ]
+        );
+
+        $this->assertEquals($value, $result);
+    }
+
+    public function testFormatObjectHandlesEncodedObject()
     {
         $parameter = [
             'schema' => [
@@ -1093,6 +1132,43 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
                 [],
             ]
         );
+    }
+
+    public function testFormatObjectHandlesPartialDefinition()
+    {
+        $parameter = [
+            'properties' => [
+                'key' => [
+                    'some value',
+                ],
+            ],
+        ];
+
+        $value = (object) [
+            'key' => 'value',
+        ];
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedFormatObject = $reflectedParameterParser->getMethod('formatObject');
+        $reflectedFormatObject->setAccessible(true);
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'castType' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('castType')
+            ->with($value->key, $parameter['properties']['key'])
+            ->willReturn('value');
+
+        $result = $reflectedFormatObject->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                $parameter,
+            ]
+        );
+
+        $this->assertEquals($value, $result);
     }
 
     public function testFormatStringIgnoresFormatlessParameter()
