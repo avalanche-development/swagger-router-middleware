@@ -176,13 +176,23 @@ class Router implements LoggerAwareInterface
      */
     protected function getSecurity(array $operation, array $swagger)
     {
+        $securityRequirement = [];
+
         if (isset($operation['security'])) {
-            return $operation['security'];
+            $securityRequirement = $operation['security'];
         }
         if (isset($swagger['security'])) {
-            return $swagger['security'];
+            $securityRequirement = $swagger['security'];
         }
-        return [];
+
+        $security = [];
+        foreach($securityRequirement as $scheme => $scopes) {
+            if (!array_key_exists($scheme, $this->swagger['securityDefinitions'])) {
+                throw new \Exception('Security scheme is not defined');
+            }
+            $security[$scheme] = $this->swagger['securityDefinitions'][$scheme];
+        }
+        return $security;
     }
 
     /**
