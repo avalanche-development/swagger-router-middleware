@@ -183,15 +183,24 @@ class Router implements LoggerAwareInterface
             $securityRequirement = $this->swagger['security'];
         }
 
+        if (empty($securityRequirement)) {
+            return [];
+        }
+
+        if (!array_key_exists('securityDefinitions', $this->swagger)) {
+            throw new \Exception('No security schemes defined');
+        }
+
         $security = [];
         foreach ($securityRequirement as $scheme => $scopes) {
-            if (
-                !array_key_exists('securityDefinitions', $this->swagger) ||
-                !array_key_exists($scheme, $this->swagger['securityDefinitions'])
-            ) {
+            if (!array_key_exists($scheme, $this->swagger['securityDefinitions'])) {
                 throw new \Exception('Security scheme is not defined');
             }
             $security[$scheme] = $this->swagger['securityDefinitions'][$scheme];
+            // todo this should only be oauth, plus should validate against defined scopes
+            if (!empty($scopes)) {
+                $security[$scheme]['operationScopes'] = $scopes;
+            }
         }
         return $security;
     }
