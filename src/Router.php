@@ -192,7 +192,9 @@ class Router implements LoggerAwareInterface
         }
 
         $security = [];
-        foreach ($securityRequirement as $scheme => $scopes) {
+        foreach ($securityRequirement as $requirement) {
+            $scheme = key($requirement);
+            $scopes = current($requirement);
             if (!array_key_exists($scheme, $this->swagger['securityDefinitions'])) {
                 throw new \Exception('Security scheme is not defined');
             }

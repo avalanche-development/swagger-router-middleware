@@ -977,13 +977,17 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 ],
             ],
             'security' => [
-                'invalid' => [],
+                [
+                    'invalid' => [],
+                ],
             ],
         ];
 
         $operation = [
             'security' => [
-                'valid' => [],
+                [
+                    'valid' => [],
+                ],
             ],
         ];
 
@@ -1009,7 +1013,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 ],
             ],
             'security' => [
-                'valid' => [],
+                [
+                    'valid' => [],
+                ],
             ],
         ];
 
@@ -1090,9 +1096,11 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $operation = [
             'security' => [
-                'valid' => [
-                    'thing:read',
-                    'thing:write',
+                [
+                    'valid' => [
+                        'thing:read',
+                        'thing:write',
+                    ],
                 ],
             ],
         ];
