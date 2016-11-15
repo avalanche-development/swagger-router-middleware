@@ -78,7 +78,7 @@ class Router implements LoggerAwareInterface
 
         $parameters = $this->getParameters($pathItem, $operation);
         $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
-        $security = $this->getSecurity($operation, $this->swagger);
+        $security = $this->getSecurity($operation);
 
         $request = $request->withAttribute('swagger', [
             'apiPath' => $route,
@@ -171,18 +171,38 @@ class Router implements LoggerAwareInterface
 
     /**
      * @param array $operation
-     * @param array $swagger
      * @return array
      */
-    protected function getSecurity(array $operation, array $swagger)
+    protected function getSecurity(array $operation)
     {
+        $securityRequirement = [];
+
         if (isset($operation['security'])) {
-            return $operation['security'];
+            $securityRequirement = $operation['security'];
+        } elseif (isset($this->swagger['security'])) {
+            $securityRequirement = $this->swagger['security'];
         }
-        if (isset($swagger['security'])) {
-            return $swagger['security'];
+
+        if (empty($securityRequirement)) {
+            return [];
         }
-        return [];
+
+        if (!array_key_exists('securityDefinitions', $this->swagger)) {
+            throw new \Exception('No security schemes defined');
+        }
+
+        $security = [];
+        foreach ($securityRequirement as $scheme => $scopes) {
+            if (!array_key_exists($scheme, $this->swagger['securityDefinitions'])) {
+                throw new \Exception('Security scheme is not defined');
+            }
+            $security[$scheme] = $this->swagger['securityDefinitions'][$scheme];
+            // todo this should only be oauth, plus should validate against defined scopes
+            if (!empty($scopes)) {
+                $security[$scheme]['operationScopes'] = $scopes;
+            }
+        }
+        return $security;
     }
 
     /**

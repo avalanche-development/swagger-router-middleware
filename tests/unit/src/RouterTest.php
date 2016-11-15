@@ -337,7 +337,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
-            ->with(current($path)['get'], [ 'paths' => $path ])
+            ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
             ->method('hydrateParameterValues')
@@ -493,7 +493,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([ $parameter ]);
         $router->expects($this->once())
             ->method('getSecurity')
-            ->with(current($path)['get'], [ 'paths' => $path ])
+            ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
             ->method('hydrateParameterValues')
@@ -582,7 +582,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
-            ->with(current($path)['get'], [ 'paths' => $path ])
+            ->with(current($path)['get'])
             ->willReturn($security);
         $router->expects($this->once())
             ->method('hydrateParameterValues')
@@ -956,54 +956,6 @@ class RouterTest extends PHPUnit_Framework_TestCase
         ], $result);
     }
 
-    public function testGetSecurityReturnsOperationSecurity()
-    {
-        $swagger = [
-            'security' => [
-                'invalid',
-            ],
-        ];
-
-        $operation = [
-            'security' => [
-                'valid',
-            ],
-        ];
-
-        $reflectedRouter = new ReflectionClass(Router::class);
-        $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
-        $reflectedGetSecurity->setAccessible(true);
-
-        $router = new Router([]);
-        $result = $reflectedGetSecurity->invokeArgs($router, [
-            $operation,
-            $swagger,
-        ]);
-
-        $this->assertEquals($operation['security'], $result);
-    }
-
-    public function testGetSecurityReturnsGlobalSecurity()
-    {
-        $swagger = [
-            'security' => [
-                'invalid',
-            ],
-        ];
-
-        $reflectedRouter = new ReflectionClass(Router::class);
-        $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
-        $reflectedGetSecurity->setAccessible(true);
-
-        $router = new Router([]);
-        $result = $reflectedGetSecurity->invokeArgs($router, [
-            [],
-            $swagger,
-        ]);
-
-        $this->assertEquals($swagger['security'], $result);
-    }
-
     public function testGetSecurityReturnsEmptyAsDefault()
     {
         $reflectedRouter = new ReflectionClass(Router::class);
@@ -1011,12 +963,159 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedGetSecurity->setAccessible(true);
 
         $router = new Router([]);
-        $result = $reflectedGetSecurity->invokeArgs($router, [
-            [],
-            [],
-        ]);
+        $result = $reflectedGetSecurity->invokeArgs($router, [[]]);
 
         $this->assertEquals([], $result);
+    }
+
+    public function testGetSecurityReturnsOperationSecurity()
+    {
+        $swagger = [
+            'securityDefinitions' => [
+                'valid' => [
+                    'some value',
+                ],
+            ],
+            'security' => [
+                'invalid' => [],
+            ],
+        ];
+
+        $operation = [
+            'security' => [
+                'valid' => [],
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
+        $reflectedGetSecurity->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetSecurity->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals($swagger['securityDefinitions'], $result);
+    }
+
+    public function testGetSecurityReturnsGlobalSecurity()
+    {
+        $swagger = [
+            'securityDefinitions' => [
+                'valid' => [
+                    'some value',
+                ],
+            ],
+            'security' => [
+                'valid' => [],
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
+        $reflectedGetSecurity->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetSecurity->invokeArgs($router, [[]]);
+
+        $this->assertEquals($swagger['securityDefinitions'], $result);
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage No security schemes defined
+     */
+    public function testGetSecurityBailsForNoSecurityDefinitions()
+    {
+        $operation = [
+            'security' => [
+                'valid' => [],
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
+        $reflectedGetSecurity->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, []);
+        $reflectedGetSecurity->invokeArgs($router, [ $operation ]);
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage Security scheme is not defined
+     */
+    public function testGetSecurityBailsOnUndefinedSecurity()
+    {
+        $swagger = [
+            'securityDefinitions' => [
+                'valid' => [],
+            ],
+        ];
+
+        $operation = [
+            'security' => [
+                'invalid' => [],
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
+        $reflectedGetSecurity->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $reflectedGetSecurity->invokeArgs($router, [ $operation ]);
+    }
+
+    public function testGetSecurityAttachesScopes()
+    {
+        $swagger = [
+            'securityDefinitions' => [
+                'valid' => [
+                    'some key' => 'some value',
+                ],
+            ]
+        ];
+
+        $operation = [
+            'security' => [
+                'valid' => [
+                    'thing:read',
+                    'thing:write',
+                ],
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
+        $reflectedGetSecurity->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetSecurity->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals([
+            'valid' => [
+                'operationScopes' => [
+                    'thing:read',
+                    'thing:write',
+                ],
+                'some key' => 'some value',
+            ],
+        ], $result);
     }
 
     public function testLog()
