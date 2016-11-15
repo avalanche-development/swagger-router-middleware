@@ -1014,6 +1014,29 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($swagger['securityDefinitions'], $result);
     }
 
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage Security scheme is not defined
+     */
+    public function testGetSecurityBailsOnUndefinedSecurity()
+    {
+        $operation = [
+            'security' => [
+                'valid' => [],
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
+        $reflectedGetSecurity->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, []);
+        $reflectedGetSecurity->invokeArgs($router, [ $operation ]);
+    }
+
     public function testGetSecurityReturnsEmptyAsDefault()
     {
         $reflectedRouter = new ReflectionClass(Router::class);
