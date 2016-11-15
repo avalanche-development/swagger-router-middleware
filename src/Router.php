@@ -78,7 +78,7 @@ class Router implements LoggerAwareInterface
 
         $parameters = $this->getParameters($pathItem, $operation);
         $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
-        $security = $this->getSecurity($operation, $this->swagger);
+        $security = $this->getSecurity($operation);
 
         $request = $request->withAttribute('swagger', [
             'apiPath' => $route,
@@ -171,18 +171,16 @@ class Router implements LoggerAwareInterface
 
     /**
      * @param array $operation
-     * @param array $swagger
      * @return array
      */
-    protected function getSecurity(array $operation, array $swagger)
+    protected function getSecurity(array $operation)
     {
         $securityRequirement = [];
 
         if (isset($operation['security'])) {
             $securityRequirement = $operation['security'];
-        }
-        if (isset($swagger['security'])) {
-            $securityRequirement = $swagger['security'];
+        } else if (isset($this->swagger['security'])) {
+            $securityRequirement = $this->swagger['security'];
         }
 
         $security = [];

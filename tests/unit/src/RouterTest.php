@@ -337,7 +337,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
-            ->with(current($path)['get'], [ 'paths' => $path ])
+            ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
             ->method('hydrateParameterValues')
@@ -493,7 +493,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([ $parameter ]);
         $router->expects($this->once())
             ->method('getSecurity')
-            ->with(current($path)['get'], [ 'paths' => $path ])
+            ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
             ->method('hydrateParameterValues')
@@ -582,7 +582,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
-            ->with(current($path)['get'], [ 'paths' => $path ])
+            ->with(current($path)['get'])
             ->willReturn($security);
         $router->expects($this->once())
             ->method('hydrateParameterValues')
@@ -959,49 +959,59 @@ class RouterTest extends PHPUnit_Framework_TestCase
     public function testGetSecurityReturnsOperationSecurity()
     {
         $swagger = [
+            'securityDefinitions' => [
+                'valid' => [
+                    'some value',
+                ],
+            ],
             'security' => [
-                'invalid',
+                'invalid' => [],
             ],
         ];
 
         $operation = [
             'security' => [
-                'valid',
+                'valid' => [],
             ],
         ];
 
         $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
         $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
         $reflectedGetSecurity->setAccessible(true);
 
         $router = new Router([]);
-        $result = $reflectedGetSecurity->invokeArgs($router, [
-            $operation,
-            $swagger,
-        ]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetSecurity->invokeArgs($router, [ $operation ]);
 
-        $this->assertEquals($operation['security'], $result);
+        $this->assertEquals($swagger['securityDefinitions'], $result);
     }
 
     public function testGetSecurityReturnsGlobalSecurity()
     {
         $swagger = [
+            'securityDefinitions' => [
+                'valid' => [
+                    'some value',
+                ],
+            ],
             'security' => [
-                'invalid',
+                'valid' => [],
             ],
         ];
 
         $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
         $reflectedGetSecurity = $reflectedRouter->getMethod('getSecurity');
         $reflectedGetSecurity->setAccessible(true);
 
         $router = new Router([]);
-        $result = $reflectedGetSecurity->invokeArgs($router, [
-            [],
-            $swagger,
-        ]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetSecurity->invokeArgs($router, [[]]);
 
-        $this->assertEquals($swagger['security'], $result);
+        $this->assertEquals($swagger['securityDefinitions'], $result);
     }
 
     public function testGetSecurityReturnsEmptyAsDefault()
@@ -1011,10 +1021,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedGetSecurity->setAccessible(true);
 
         $router = new Router([]);
-        $result = $reflectedGetSecurity->invokeArgs($router, [
-            [],
-            [],
-        ]);
+        $result = $reflectedGetSecurity->invokeArgs($router, [[]]);
 
         $this->assertEquals([], $result);
     }
