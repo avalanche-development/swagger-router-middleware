@@ -282,10 +282,14 @@ class ParameterParser
             }
         }
 
+        $schema = array_key_exists('schema', $parameter) ? $parameter['schema'] : $parameter;
+        if (empty($schema['properties'])) {
+            return $object;
+        }
+        $properties = $schema['properties'];
+
         foreach ($object as $key => $attribute) {
-            $schema = array_key_exists('schema', $parameter) ? $parameter['schema'] : $parameter;
-            $properties = $schema['properties'][$key];
-            $object->{$key} = $this->castType($attribute, $properties);
+            $object->{$key} = $this->castType($attribute, $properties[$key]);
         }
 
         return $object;
