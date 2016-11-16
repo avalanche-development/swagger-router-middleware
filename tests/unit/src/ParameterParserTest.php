@@ -1112,6 +1112,72 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($value, $result);
     }
 
+    public function testFormatObjectHandlesPartiallyDefinedParameter()
+    {
+        $parameter = [
+            'properties' => [
+                'key' => [
+                    'some value',
+                ],
+            ],
+        ];
+
+        $value = (object) [
+            'key' => 'value',
+        ];
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedFormatObject = $reflectedParameterParser->getMethod('formatObject');
+        $reflectedFormatObject->setAccessible(true);
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'castType' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('castType')
+            ->with($value->key, $parameter['properties']['key'])
+            ->willReturn('value');
+
+        $result = $reflectedFormatObject->invokeArgs(
+            $parameterParser,
+            [
+                json_encode($value),
+                $parameter,
+            ]
+        );
+
+        $this->assertEquals($value, $result);
+    }
+
+    public function testFormatObjectHandlesUndefinedParameterObject()
+    {
+        $parameter = [];
+
+        $value = (object) [
+            'key' => 'value',
+        ];
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedFormatObject = $reflectedParameterParser->getMethod('formatObject');
+        $reflectedFormatObject->setAccessible(true);
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'castType' ])
+            ->getMock();
+        $parameterParser->expects($this->never())
+            ->method('castType');
+
+        $result = $reflectedFormatObject->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                $parameter,
+            ]
+        );
+
+        $this->assertEquals($value, $result);
+    }
+
     /**
      * @expectedException AvalancheDevelopment\Peel\HttpError\BadRequest
      * @expectedExceptionMessage Bad json object passed in as parameter
