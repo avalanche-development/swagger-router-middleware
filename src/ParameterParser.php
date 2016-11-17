@@ -19,7 +19,8 @@ class ParameterParser
     {
         switch ($parameter['in']) {
             case 'query':
-                $value = $this->getQueryValue($request, $parameter);
+                $query = new Parameter\Query;
+                $value = $query($request, $parameter);
                 break;
             case 'header':
                 $value = $this->getHeaderValue($request, $parameter);
@@ -45,28 +46,6 @@ class ParameterParser
 
         $value = $this->castType($value, $parameter);
         return $value;
-    }
-
-    /**
-     * @param Request $request
-     * @param array $parameter
-     * @return mixed
-     */
-    protected function getQueryValue(Request $request, array $parameter)
-    {
-        $query = $this->parseQueryString($request);
-        if (!array_key_exists($parameter['name'], $query)) {
-            return;
-        }
-
-        $value = $query[$parameter['name']];
-        if ($parameter['type'] !== 'array') {
-            return $value;
-        }
-        if (isset($parameter['collectionFormat']) && $parameter['collectionFormat'] === 'multi') {
-            return (array) $value;
-        }
-        return $this->explodeValue($value, $parameter);
     }
 
     /**
@@ -124,39 +103,6 @@ class ParameterParser
     {
         $body = (string) $request->getBody();
         return $body;
-    }
-
-    /**
-     * @param Request $request
-     * @return array
-     */
-    protected function parseQueryString(Request $request)
-    {
-        $params = [];
-        $queryString = $request->getUri()->getQuery();
-        $setList = explode('&', $queryString);
-
-        foreach ($setList as $set) {
-            if (empty($set)) {
-                continue;
-            }
-
-            list($name, $value) = explode('=', $set);
-            $name = urldecode($name);
-            if (substr($name, -2) === '[]') {
-                $name = substr($name, 0, -2);
-            }
-            if (!isset($params[$name])) {
-                $params[$name] = $value;
-                continue;
-            }
-            if (!is_array($params[$name])) {
-                $params[$name] = [$params[$name]];
-            }
-            array_push($params[$name], $value);
-        }
-
-        return $params;
     }
 
     /**
