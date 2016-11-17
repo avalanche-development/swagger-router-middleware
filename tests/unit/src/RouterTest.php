@@ -1211,6 +1211,174 @@ class RouterTest extends PHPUnit_Framework_TestCase
         ], $result);
     }
 
+    public function testGetProducesReturnsEmptyAsDefault()
+    {
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedGetProduces = $reflectedRouter->getMethod('getProduces');
+        $reflectedGetProduces->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedGetProduces->invokeArgs($router, [[]]);
+
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetProducesReturnsOperationProduces()
+    {
+        $swagger = [
+            'produces' => [
+                'overridden mime type',
+            ],
+        ];
+
+        $operation = [
+            'produces' => [
+                'valid mime type',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetProduces = $reflectedRouter->getMethod('getProduces');
+        $reflectedGetProduces->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetProduces->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals($operation['produces'], $result);
+    }
+
+    public function testGetProducesReturnsEmptyWithOverride()
+    {
+        $swagger = [
+            'produces' => [
+                'overridden mime type',
+            ],
+        ];
+        $operation = [
+            'produces' => [],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetProduces = $reflectedRouter->getMethod('getProduces');
+        $reflectedGetProduces->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetProduces->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetProducesReturnsGlobalProduces()
+    {
+        $swagger = [
+            'produces' => [
+                'valid mime type',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetProduces = $reflectedRouter->getMethod('getProduces');
+        $reflectedGetProduces->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetProduces->invokeArgs($router, [[]]);
+
+        $this->assertEquals($swagger['produces'], $result);
+    }
+
+    public function testGetConsumesReturnsEmptyAsDefault()
+    {
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedGetConsumes = $reflectedRouter->getMethod('getConsumes');
+        $reflectedGetConsumes->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedGetConsumes->invokeArgs($router, [[]]);
+
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetConsumesReturnsOperationConsumes()
+    {
+        $swagger = [
+            'consumes' => [
+                'overridden mime type',
+            ],
+        ];
+
+        $operation = [
+            'consumes' => [
+                'valid mime type',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetConsumes = $reflectedRouter->getMethod('getConsumes');
+        $reflectedGetConsumes->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetConsumes->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals($operation['consumes'], $result);
+    }
+
+    public function testGetConsumesReturnsEmptyWithOverride()
+    {
+        $swagger = [
+            'consumes' => [
+                'overridden mime type',
+            ],
+        ];
+        $operation = [
+            'consumes' => [],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetConsumes = $reflectedRouter->getMethod('getConsumes');
+        $reflectedGetConsumes->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetConsumes->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetConsumesReturnsGlobalConsumes()
+    {
+        $swagger = [
+            'consumes' => [
+                'valid mime type',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetConsumes = $reflectedRouter->getMethod('getConsumes');
+        $reflectedGetConsumes->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetConsumes->invokeArgs($router, [[]]);
+
+        $this->assertEquals($swagger['consumes'], $result);
+    }
+
     public function testLog()
     {
         $message = 'test debug message';
