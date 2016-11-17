@@ -84,6 +84,8 @@ class Router implements LoggerAwareInterface
         $parameters = $this->getParameters($pathItem, $operation);
         $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
         $security = $this->getSecurity($operation);
+        $produces = $this->getProduces($operation);
+        $consumes = $this->getConsumes($operation);
 
         $request = $request->withAttribute('swagger', [
             'apiPath' => $route,
@@ -91,6 +93,8 @@ class Router implements LoggerAwareInterface
             'operation' => $operation,
             'params' => $parameters,
             'security' => $security,
+            'produces' => $produces,
+            'consumes' => $consumes,
         ]);
 
         $this->log('finished');
@@ -211,6 +215,40 @@ class Router implements LoggerAwareInterface
             }
         }
         return $security;
+    }
+
+    /**
+     * @param array $operation
+     * @return array
+     */
+    protected function getProduces(array $operation)
+    {
+        $produces = [];
+
+        if (array_key_exists('produces', $operation)) {
+            $produces = $operation['produces'];
+        } elseif (isset($this->swagger['produces'])) {
+            $produces = $this->swagger['produces'];
+        }
+
+        return $produces;
+    }
+
+    /**
+     * @param array $operation
+     * @return array
+     */
+    protected function getConsumes(array $operation)
+    {
+        $consumes = [];
+
+        if (array_key_exists('consumes', $operation)) {
+            $consumes = $operation['consumes'];
+        } elseif (isset($this->swagger['consumes'])) {
+            $consumes = $this->swagger['consumes'];
+        }
+
+        return $consumes;
     }
 
     /**

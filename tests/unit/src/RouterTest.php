@@ -338,6 +338,8 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'operation' => current($path)['get'],
                 'params' => [],
                 'security' => [],
+                'produces' => [],
+                'consumes' => [],
             ])
             ->will($this->returnSelf());
 
@@ -350,7 +352,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'getConsumes',
                 'getParameters',
+                'getProduces',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -359,8 +363,16 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ])
             ->getMock();
         $router->expects($this->once())
+            ->method('getConsumes')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getProduces')
+            ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
@@ -506,6 +518,8 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'operation' => current($path)['get'],
                 'params' => [ $parameter ],
                 'security' => [],
+                'produces' => [],
+                'consumes' => [],
             ])
             ->will($this->returnSelf());
 
@@ -518,7 +532,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'getConsumes',
                 'getParameters',
+                'getProduces',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -527,9 +543,17 @@ class RouterTest extends PHPUnit_Framework_TestCase
               ])
             ->getMock();
         $router->expects($this->once())
+            ->method('getConsumes')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
             ->willReturn([ $parameter ]);
+        $router->expects($this->once())
+            ->method('getProduces')
+            ->with(current($path)['get'])
+            ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
             ->with(current($path)['get'])
@@ -600,6 +624,8 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'operation' => current($path)['get'],
                 'params' => [],
                 'security' => $security,
+                'produces' => [],
+                'consumes' => [],
             ])
             ->will($this->returnSelf());
 
@@ -612,7 +638,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'getConsumes',
                 'getParameters',
+                'getProduces',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -621,8 +649,16 @@ class RouterTest extends PHPUnit_Framework_TestCase
               ])
             ->getMock();
         $router->expects($this->once())
+            ->method('getConsumes')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getProduces')
+            ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
