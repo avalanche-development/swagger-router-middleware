@@ -44,8 +44,10 @@ class Router implements LoggerAwareInterface
      */
     public function __invoke(Request $request, Response $response, callable $next)
     {
+        $this->log('start');
+
         if ($this->isDocumentationRoute($request)) {
-            $this->log('Documentation route - early response');
+            $this->log('documentation route - early response');
 
             $swaggerDoc = json_encode($this->swagger);
             if ($swaggerDoc === false || json_last_error() !== JSON_ERROR_NONE) {
@@ -66,14 +68,17 @@ class Router implements LoggerAwareInterface
             }
         }
         if (!$matchedPath) {
+            $this->log('no match found, exiting with NotFound exception');
             throw new NotFound('No match found in swagger docs');
         }
 
         $method = strtolower($request->getMethod());
         if (!array_key_exists($method, $pathItem)) {
+            $this->log('no method found for path, exiting with MethodNotAllowed exception');
             throw new MethodNotAllowed('No method found for this route');
         }
 
+        $this->log("request matched with {$route}");
         $operation = $pathItem[$method];
 
         $parameters = $this->getParameters($pathItem, $operation);
@@ -88,6 +93,7 @@ class Router implements LoggerAwareInterface
             'security' => $security,
         ]);
 
+        $this->log('finished');
         return $next($request, $response);
     }
 

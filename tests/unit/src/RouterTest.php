@@ -71,9 +71,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(true);
-        $router->expects($this->once())
+        $router->expects($this->exactly(2))
             ->method('log')
-            ->with('Documentation route - early response');
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'documentation route - early response' ]
+            );
         $router->expects($this->never())
             ->method('matchPath');
 
@@ -128,9 +131,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(true);
-        $router->expects($this->once())
+        $router->expects($this->exactly(2))
             ->method('log')
-            ->with('Documentation route - early response');
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'documentation route - early response' ]
+            );
         $router->expects($this->never())
             ->method('matchPath');
 
@@ -166,6 +172,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods([
                 'isDocumentationRoute',
+                'log',
                 'matchPath',
             ])
             ->getMock();
@@ -173,6 +180,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
+        $router->expects($this->exactly(2))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'no match found, exiting with NotFound exception' ]
+            );
         $router->expects($this->never())
             ->method('matchPath');
 
@@ -208,6 +221,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods([
                 'isDocumentationRoute',
+                'log',
                 'matchPath',
             ])
             ->getMock();
@@ -215,6 +229,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
+        $router->expects($this->exactly(2))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'no match found, exiting with NotFound exception' ]
+            );
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, $route)
@@ -264,6 +284,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods([
                 'isDocumentationRoute',
+                'log',
                 'matchPath',
             ])
             ->getMock();
@@ -271,6 +292,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
+        $router->expects($this->exactly(2))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'no method found for path, exiting with MethodNotAllowed exception' ]
+            );
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, key($path))
@@ -352,8 +379,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
-        $router->expects($this->never())
-            ->method('log');
+        $router->expects($this->exactly(3))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ],
+                [ 'finished' ]
+            );
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, key($path))
@@ -406,6 +438,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->setMethods([
                 'hydrateParameterValues',
                 'isDocumentationRoute',
+                'log',
                 'matchPath',
             ])
             ->getMock();
@@ -422,6 +455,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
+        $router->expects($this->exactly(2))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ]
+            );
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, key($path))
@@ -508,8 +547,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
-        $router->expects($this->never())
-            ->method('log');
+        $router->expects($this->exactly(3))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ],
+                [ 'finished' ]
+            );
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, key($path))
@@ -597,8 +641,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
-        $router->expects($this->never())
-            ->method('log');
+        $router->expects($this->exactly(3))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ],
+                [ 'finished' ]
+            );
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, key($path))
