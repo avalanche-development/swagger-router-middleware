@@ -71,9 +71,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(true);
-        $router->expects($this->once())
+        $router->expects($this->exactly(2))
             ->method('log')
-            ->with('Documentation route - early response');
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'documentation route - early response' ]
+            );
         $router->expects($this->never())
             ->method('matchPath');
 
@@ -128,9 +131,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(true);
-        $router->expects($this->once())
+        $router->expects($this->exactly(2))
             ->method('log')
-            ->with('Documentation route - early response');
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'documentation route - early response' ]
+            );
         $router->expects($this->never())
             ->method('matchPath');
 
@@ -166,6 +172,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods([
                 'isDocumentationRoute',
+                'log',
                 'matchPath',
             ])
             ->getMock();
@@ -173,6 +180,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
+        $router->expects($this->exactly(2))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'no match found, exiting with NotFound exception' ]
+            );
         $router->expects($this->never())
             ->method('matchPath');
 
@@ -208,6 +221,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods([
                 'isDocumentationRoute',
+                'log',
                 'matchPath',
             ])
             ->getMock();
@@ -215,6 +229,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
+        $router->expects($this->exactly(2))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'no match found, exiting with NotFound exception' ]
+            );
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, $route)
@@ -264,6 +284,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods([
                 'isDocumentationRoute',
+                'log',
                 'matchPath',
             ])
             ->getMock();
@@ -271,6 +292,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
+        $router->expects($this->exactly(2))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'no method found for path, exiting with MethodNotAllowed exception' ]
+            );
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, key($path))
@@ -311,6 +338,8 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'operation' => current($path)['get'],
                 'params' => [],
                 'security' => [],
+                'produces' => [],
+                'consumes' => [],
             ])
             ->will($this->returnSelf());
 
@@ -323,7 +352,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'getConsumes',
                 'getParameters',
+                'getProduces',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -332,8 +363,16 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ])
             ->getMock();
         $router->expects($this->once())
+            ->method('getConsumes')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getProduces')
+            ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
@@ -352,8 +391,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
-        $router->expects($this->never())
-            ->method('log');
+        $router->expects($this->exactly(3))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ],
+                [ 'finished' ]
+            );
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, key($path))
@@ -406,6 +450,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->setMethods([
                 'hydrateParameterValues',
                 'isDocumentationRoute',
+                'log',
                 'matchPath',
             ])
             ->getMock();
@@ -422,6 +467,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
+        $router->expects($this->exactly(2))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ]
+            );
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, key($path))
@@ -467,6 +518,8 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'operation' => current($path)['get'],
                 'params' => [ $parameter ],
                 'security' => [],
+                'produces' => [],
+                'consumes' => [],
             ])
             ->will($this->returnSelf());
 
@@ -479,7 +532,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'getConsumes',
                 'getParameters',
+                'getProduces',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -488,9 +543,17 @@ class RouterTest extends PHPUnit_Framework_TestCase
               ])
             ->getMock();
         $router->expects($this->once())
+            ->method('getConsumes')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
             ->willReturn([ $parameter ]);
+        $router->expects($this->once())
+            ->method('getProduces')
+            ->with(current($path)['get'])
+            ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
             ->with(current($path)['get'])
@@ -508,8 +571,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
-        $router->expects($this->never())
-            ->method('log');
+        $router->expects($this->exactly(3))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ],
+                [ 'finished' ]
+            );
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, key($path))
@@ -556,6 +624,8 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'operation' => current($path)['get'],
                 'params' => [],
                 'security' => $security,
+                'produces' => [],
+                'consumes' => [],
             ])
             ->will($this->returnSelf());
 
@@ -568,7 +638,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'getConsumes',
                 'getParameters',
+                'getProduces',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -577,8 +649,16 @@ class RouterTest extends PHPUnit_Framework_TestCase
               ])
             ->getMock();
         $router->expects($this->once())
+            ->method('getConsumes')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getProduces')
+            ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
@@ -597,8 +677,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('isDocumentationRoute')
             ->with($mockRequest)
             ->willReturn(false);
-        $router->expects($this->never())
-            ->method('log');
+        $router->expects($this->exactly(3))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ],
+                [ 'finished' ]
+            );
         $router->expects($this->once())
             ->method('matchPath')
             ->with($mockRequest, key($path))
@@ -1124,6 +1209,174 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'some key' => 'some value',
             ],
         ], $result);
+    }
+
+    public function testGetProducesReturnsEmptyAsDefault()
+    {
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedGetProduces = $reflectedRouter->getMethod('getProduces');
+        $reflectedGetProduces->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedGetProduces->invokeArgs($router, [[]]);
+
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetProducesReturnsOperationProduces()
+    {
+        $swagger = [
+            'produces' => [
+                'overridden mime type',
+            ],
+        ];
+
+        $operation = [
+            'produces' => [
+                'valid mime type',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetProduces = $reflectedRouter->getMethod('getProduces');
+        $reflectedGetProduces->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetProduces->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals($operation['produces'], $result);
+    }
+
+    public function testGetProducesReturnsEmptyWithOverride()
+    {
+        $swagger = [
+            'produces' => [
+                'overridden mime type',
+            ],
+        ];
+        $operation = [
+            'produces' => [],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetProduces = $reflectedRouter->getMethod('getProduces');
+        $reflectedGetProduces->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetProduces->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetProducesReturnsGlobalProduces()
+    {
+        $swagger = [
+            'produces' => [
+                'valid mime type',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetProduces = $reflectedRouter->getMethod('getProduces');
+        $reflectedGetProduces->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetProduces->invokeArgs($router, [[]]);
+
+        $this->assertEquals($swagger['produces'], $result);
+    }
+
+    public function testGetConsumesReturnsEmptyAsDefault()
+    {
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedGetConsumes = $reflectedRouter->getMethod('getConsumes');
+        $reflectedGetConsumes->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedGetConsumes->invokeArgs($router, [[]]);
+
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetConsumesReturnsOperationConsumes()
+    {
+        $swagger = [
+            'consumes' => [
+                'overridden mime type',
+            ],
+        ];
+
+        $operation = [
+            'consumes' => [
+                'valid mime type',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetConsumes = $reflectedRouter->getMethod('getConsumes');
+        $reflectedGetConsumes->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetConsumes->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals($operation['consumes'], $result);
+    }
+
+    public function testGetConsumesReturnsEmptyWithOverride()
+    {
+        $swagger = [
+            'consumes' => [
+                'overridden mime type',
+            ],
+        ];
+        $operation = [
+            'consumes' => [],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetConsumes = $reflectedRouter->getMethod('getConsumes');
+        $reflectedGetConsumes->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetConsumes->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetConsumesReturnsGlobalConsumes()
+    {
+        $swagger = [
+            'consumes' => [
+                'valid mime type',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetConsumes = $reflectedRouter->getMethod('getConsumes');
+        $reflectedGetConsumes->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetConsumes->invokeArgs($router, [[]]);
+
+        $this->assertEquals($swagger['consumes'], $result);
     }
 
     public function testLog()

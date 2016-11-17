@@ -44,8 +44,10 @@ class Router implements LoggerAwareInterface
      */
     public function __invoke(Request $request, Response $response, callable $next)
     {
+        $this->log('start');
+
         if ($this->isDocumentationRoute($request)) {
-            $this->log('Documentation route - early response');
+            $this->log('documentation route - early response');
 
             $swaggerDoc = json_encode($this->swagger);
             if ($swaggerDoc === false || json_last_error() !== JSON_ERROR_NONE) {
@@ -66,19 +68,24 @@ class Router implements LoggerAwareInterface
             }
         }
         if (!$matchedPath) {
+            $this->log('no match found, exiting with NotFound exception');
             throw new NotFound('No match found in swagger docs');
         }
 
         $method = strtolower($request->getMethod());
         if (!array_key_exists($method, $pathItem)) {
+            $this->log('no method found for path, exiting with MethodNotAllowed exception');
             throw new MethodNotAllowed('No method found for this route');
         }
 
+        $this->log("request matched with {$route}");
         $operation = $pathItem[$method];
 
         $parameters = $this->getParameters($pathItem, $operation);
         $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
         $security = $this->getSecurity($operation);
+        $produces = $this->getProduces($operation);
+        $consumes = $this->getConsumes($operation);
 
         $request = $request->withAttribute('swagger', [
             'apiPath' => $route,
@@ -86,8 +93,11 @@ class Router implements LoggerAwareInterface
             'operation' => $operation,
             'params' => $parameters,
             'security' => $security,
+            'produces' => $produces,
+            'consumes' => $consumes,
         ]);
 
+        $this->log('finished');
         return $next($request, $response);
     }
 
@@ -205,6 +215,40 @@ class Router implements LoggerAwareInterface
             }
         }
         return $security;
+    }
+
+    /**
+     * @param array $operation
+     * @return array
+     */
+    protected function getProduces(array $operation)
+    {
+        $produces = [];
+
+        if (array_key_exists('produces', $operation)) {
+            $produces = $operation['produces'];
+        } elseif (isset($this->swagger['produces'])) {
+            $produces = $this->swagger['produces'];
+        }
+
+        return $produces;
+    }
+
+    /**
+     * @param array $operation
+     * @return array
+     */
+    protected function getConsumes(array $operation)
+    {
+        $consumes = [];
+
+        if (array_key_exists('consumes', $operation)) {
+            $consumes = $operation['consumes'];
+        } elseif (isset($this->swagger['consumes'])) {
+            $consumes = $this->swagger['consumes'];
+        }
+
+        return $consumes;
     }
 
     /**
