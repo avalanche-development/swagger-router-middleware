@@ -63,25 +63,6 @@ class ParameterParser
     /**
      * @param Request $request
      * @param array $parameter
-     * @return mixed
-     */
-    protected function getHeaderValue(Request $request, array $parameter)
-    {
-        $headers = $request->getHeaders();
-        if (!array_key_exists($parameter['name'], $headers)) {
-            return;
-        }
-
-        if ($parameter['type'] !== 'array') {
-            return current($headers[$parameter['name']]);
-        }
-
-        return $headers[$parameter['name']];
-    }
-
-    /**
-     * @param Request $request
-     * @param array $parameter
      * @param string $route
      * @return mixed
      */
