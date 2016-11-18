@@ -17,28 +17,8 @@ class ParameterParser
      */
     public function __invoke(Request $request, array $parameter, $route)
     {
-        switch ($parameter['in']) {
-            case 'query':
-                $query = new Parameter\Query;
-                $value = $query($request, $parameter);
-                break;
-            case 'header':
-                $value = $this->getHeaderValue($request, $parameter);
-                break;
-            case 'path':
-                $value = $this->getPathValue($request, $parameter, $route);
-                break;
-            case 'formData':
-                // todo implement form parameters
-                throw new \Exception('Form parameters are not yet implemented');
-                break;
-            case 'body':
-                $value = $this->getBodyValue($request);
-                break;
-            default:
-                throw new \Exception('Invalid parameter type defined in swagger');
-                break;
-        }
+        $parser = $this->getParser($request, $parameter, $route);
+        $value = $parser->getValue($request, $parameter);
 
         if (!isset($value) && isset($parameter['default'])) {
             $value = $parameter['default'];
@@ -46,6 +26,38 @@ class ParameterParser
 
         $value = $this->castType($value, $parameter);
         return $value;
+    }
+
+    /**
+     * @param Request $request
+     * @param array $parameter
+     * @param string $route
+     * @return ParserInterface
+     */
+    protected function getParser(Request $request, array $parameter, $route)
+    {
+        switch ($parameter['in']) {
+            case 'query':
+                $parser = new Parser\Query($request, $parameter);
+                break;
+            case 'header':
+                $parser = new Parser\Header($request, $parameter);
+                break;
+            case 'path':
+                $parser = new Parser\Path($request, $parameter, $route);
+                break;
+            case 'formData':
+                // todo implement form parameters
+                throw new \Exception('Form parameters are not yet implemented');
+                break;
+            case 'body':
+                $parser = new Parser\Body($request);
+                break;
+            default:
+                throw new \Exception('Invalid parameter type defined in swagger');
+                break;
+        }
+        return $parser;
     }
 
     /**

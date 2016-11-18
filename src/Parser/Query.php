@@ -1,33 +1,47 @@
 <?php
 
-namespace AvalancheDevelopment\SwaggerRouterMiddleware\Parameter;
+namespace AvalancheDevelopment\SwaggerRouterMiddleware\Parser;
 
 use Exception;
 use Psr\Http\Message\RequestInterface as Request;
 
-class Query
+class Query implements ParserInterface
 {
+
+    /** @var Request */
+    protected $request;
+
+    /** @var array */
+    protected $parameter;
 
     /**
      * @param Request $request
      * @param array $parameter
+     */
+    public function __construct(Request $request, array $parameter)
+    {
+        $this->request = $request;
+        $this->parameter = $parameter;
+    }
+
+    /**
      * @return mixed
      */
-    public function __invoke(Request $request, array $parameter)
+    public function getValue()
     {
-        $query = $this->parseQueryString($request);
-        if (!array_key_exists($parameter['name'], $query)) {
+        $query = $this->parseQueryString($this->request);
+        if (!array_key_exists($this->parameter['name'], $query)) {
             return;
         }
 
-        $value = $query[$parameter['name']];
-        if ($parameter['type'] !== 'array') {
+        $value = $query[$this->parameter['name']];
+        if ($this->parameter['type'] !== 'array') {
             return $value;
         }
-        if (isset($parameter['collectionFormat']) && $parameter['collectionFormat'] === 'multi') {
+        if (isset($this->parameter['collectionFormat']) && $this->parameter['collectionFormat'] === 'multi') {
             return (array) $value;
         }
-        return $this->explodeValue($value, $parameter);
+        return $this->explodeValue($value, $this->parameter);
     }
 
     /**
