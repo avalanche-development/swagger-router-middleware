@@ -89,16 +89,6 @@ class ParameterParser
     }
 
     /**
-     * @param Request $request
-     * @return mixed
-     */
-    protected function getBodyValue(Request $request)
-    {
-        $body = (string) $request->getBody();
-        return $body;
-    }
-
-    /**
      * @param mixed $value
      * @param array $parameter
      * @return array

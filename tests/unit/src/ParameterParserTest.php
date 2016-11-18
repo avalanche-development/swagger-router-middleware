@@ -385,25 +385,6 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         ], $result);
     }
 
-    public function testGetBodyValueReturnsValue()
-    {
-        $mockRequest = $this->createMock(RequestInterface::class);
-        $mockRequest->method('getBody')
-            ->willReturn(123);
-
-        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
-        $reflectedGetBodyValue = $reflectedParameterParser->getMethod('getBodyValue');
-        $reflectedGetBodyValue->setAccessible(true);
-
-        $parameterParser = new ParameterParser;
-        $result = $reflectedGetBodyValue->invokeArgs(
-            $parameterParser,
-            [ $mockRequest ]
-        );
-
-        $this->assertSame('123', $result);
-    }
-
     public function testParseQueryStringHandlesEmptyQuery()
     {
         $mockUri = $this->createMock(UriInterface::class);

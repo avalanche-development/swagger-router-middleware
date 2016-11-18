@@ -58,15 +58,15 @@ class HeaderTest extends PHPUnit_Framework_TestCase
         $reflectedParameter = $reflectedHeaderParser->getProperty('parameter');
         $reflectedParameter->setAccessible(true);
 
-        $header = $this->getMockBuilder(Header::class)
+        $headerParser = $this->getMockBuilder(Header::class)
             ->disableOriginalConstructor()
             ->setMethods(null)
             ->getMock();
 
-        $reflectedRequest->setValue($header, $mockRequest);
-        $reflectedParameter->setValue($header, $mockParameter);
+        $reflectedRequest->setValue($headerParser, $mockRequest);
+        $reflectedParameter->setValue($headerParser, $mockParameter);
 
-        $result = $header->getValue();
+        $result = $headerParser->getValue();
 
         $this->assertNull($result);
     }
@@ -93,15 +93,15 @@ class HeaderTest extends PHPUnit_Framework_TestCase
         $reflectedParameter = $reflectedHeaderParser->getProperty('parameter');
         $reflectedParameter->setAccessible(true);
 
-        $header = $this->getMockBuilder(Header::class)
+        $headerParser = $this->getMockBuilder(Header::class)
             ->disableOriginalConstructor()
             ->setMethods(null)
             ->getMock();
 
-        $reflectedRequest->setValue($header, $mockRequest);
-        $reflectedParameter->setValue($header, $mockParameter);
+        $reflectedRequest->setValue($headerParser, $mockRequest);
+        $reflectedParameter->setValue($headerParser, $mockParameter);
 
-        $result = $header->getValue();
+        $result = $headerParser->getValue();
 
         $this->assertEquals($expectedValue, $result);
     }
@@ -130,15 +130,15 @@ class HeaderTest extends PHPUnit_Framework_TestCase
         $reflectedParameter = $reflectedHeaderParser->getProperty('parameter');
         $reflectedParameter->setAccessible(true);
 
-        $header = $this->getMockBuilder(Header::class)
+        $headerParser = $this->getMockBuilder(Header::class)
             ->disableOriginalConstructor()
             ->setMethods(null)
             ->getMock();
 
-        $reflectedRequest->setValue($header, $mockRequest);
-        $reflectedParameter->setValue($header, $mockParameter);
+        $reflectedRequest->setValue($headerParser, $mockRequest);
+        $reflectedParameter->setValue($headerParser, $mockParameter);
 
-        $result = $header->getValue();
+        $result = $headerParser->getValue();
 
         $this->assertEquals($expectedValue, $result);
     }
