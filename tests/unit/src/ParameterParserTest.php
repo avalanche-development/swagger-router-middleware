@@ -137,6 +137,174 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
         $this->assertSame($expectedValue, $result);
     }
 
+    public function testGetParserHandlesQueryParameter()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockParameter = [
+            'in' => 'query',
+        ];
+        $mockRoute = '/some-route';
+
+        $reflectedQueryParser = new ReflectionClass(Parser\Query::class);
+        $reflectedRequest = $reflectedQueryParser->getProperty('request');
+        $reflectedRequest->setAccessible(true);
+        $reflectedParameter = $reflectedQueryParser->getProperty('parameter');
+        $reflectedParameter->setAccessible(true);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetParser = $reflectedParameterParser->getMethod('getParser');
+        $reflectedGetParser->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetParser->invokeArgs(
+            $parameterParser,
+            [
+                $mockRequest,
+                $mockParameter,
+                $mockRoute,
+            ]
+        );
+
+        $this->assertInstanceOf(ParserInterface::class, $result);
+        $this->assertInstanceOf(Parser\Query::class, $result);
+        $this->assertAttributeSame($mockRequest, 'request', $result);
+        $this->assertAttributeSame($mockParameter, 'parameter', $result);
+    }
+
+    public function testGetParserHandlesHeaderParameter()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockParameter = [
+            'in' => 'header',
+        ];
+        $mockRoute = '/some-route';
+
+        $reflectedHeaderParser = new ReflectionClass(Parser\Header::class);
+        $reflectedRequest = $reflectedHeaderParser->getProperty('request');
+        $reflectedRequest->setAccessible(true);
+        $reflectedParameter = $reflectedHeaderParser->getProperty('parameter');
+        $reflectedParameter->setAccessible(true);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetParser = $reflectedParameterParser->getMethod('getParser');
+        $reflectedGetParser->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetParser->invokeArgs(
+            $parameterParser,
+            [
+                $mockRequest,
+                $mockParameter,
+                $mockRoute,
+            ]
+        );
+
+        $this->assertInstanceOf(ParserInterface::class, $result);
+        $this->assertInstanceOf(Parser\Header::class, $result);
+        $this->assertAttributeSame($mockRequest, 'request', $result);
+        $this->assertAttributeSame($mockParameter, 'parameter', $result);
+    }
+
+    public function testGetParserHandlesPathParameter()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockParameter = [
+            'in' => 'path',
+        ];
+        $mockRoute = '/some-route';
+
+        $reflectedPathParser = new ReflectionClass(Parser\Path::class);
+        $reflectedRequest = $reflectedPathParser->getProperty('request');
+        $reflectedRequest->setAccessible(true);
+        $reflectedParameter = $reflectedPathParser->getProperty('parameter');
+        $reflectedParameter->setAccessible(true);
+        $reflectedRoute = $reflectedPathParser->getProperty('route');
+        $reflectedRoute->setAccessible(true);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetParser = $reflectedParameterParser->getMethod('getParser');
+        $reflectedGetParser->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetParser->invokeArgs(
+            $parameterParser,
+            [
+                $mockRequest,
+                $mockParameter,
+                $mockRoute,
+            ]
+        );
+
+        $this->assertInstanceOf(ParserInterface::class, $result);
+        $this->assertInstanceOf(Parser\Path::class, $result);
+        $this->assertAttributeSame($mockRequest, 'request', $result);
+        $this->assertAttributeSame($mockParameter, 'parameter', $result);
+        $this->assertAttributeSame($mockRoute, 'route', $result);
+    }
+
+    public function testGetParserHandlesFormParameter()
+    {
+        $this->markTestIncomplete('not yet implemented');
+    }
+
+    public function testGetParserHandlesBodyParameter()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockParameter = [
+            'in' => 'body',
+        ];
+        $mockRoute = '/some-route';
+
+        $reflectedBodyParser = new ReflectionClass(Parser\Body::class);
+        $reflectedRequest = $reflectedBodyParser->getProperty('request');
+        $reflectedRequest->setAccessible(true);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetParser = $reflectedParameterParser->getMethod('getParser');
+        $reflectedGetParser->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetParser->invokeArgs(
+            $parameterParser,
+            [
+                $mockRequest,
+                $mockParameter,
+                $mockRoute,
+            ]
+        );
+
+        $this->assertInstanceOf(ParserInterface::class, $result);
+        $this->assertInstanceOf(Parser\Body::class, $result);
+        $this->assertAttributeSame($mockRequest, 'request', $result);
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage Invalid parameter type defined in swagger
+     */
+    public function testGetParserBailsOnInvalidParameter()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockParameter = [
+            'in' => 'invalid',
+        ];
+        $mockRoute = '/some-route';
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetParser = $reflectedParameterParser->getMethod('getParser');
+        $reflectedGetParser->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $reflectedGetParser->invokeArgs(
+            $parameterParser,
+            [
+                $mockRequest,
+                $mockParameter,
+                $mockRoute,
+            ]
+        );
+    }
+
     public function testCastTypeHandlesArray()
     {
         $parameter = [
