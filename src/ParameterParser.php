@@ -4,6 +4,7 @@ namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
 use AvalancheDevelopment\Peel\HttpError\BadRequest;
 use DateTime;
+use Exception;
 use Psr\Http\Message\RequestInterface as Request;
 
 class ParameterParser
@@ -48,87 +49,16 @@ class ParameterParser
                 break;
             case 'formData':
                 // todo implement form parameters
-                throw new \Exception('Form parameters are not yet implemented');
+                throw new Exception('Form parameters are not yet implemented');
                 break;
             case 'body':
                 $parser = new Parser\Body($request);
                 break;
             default:
-                throw new \Exception('Invalid parameter type defined in swagger');
+                throw new Exception('Invalid parameter type defined in swagger');
                 break;
         }
         return $parser;
-    }
-
-    /**
-     * @param Request $request
-     * @param array $parameter
-     * @param string $route
-     * @return mixed
-     */
-    protected function getPathValue(Request $request, array $parameter, $route)
-    {
-        $path = $request->getUri()->getPath();
-        $key = str_replace(
-            '{' . $parameter['name'] . '}',
-            '(?P<' . $parameter['name'] . '>[^/]+)',
-            $route
-        );
-        $key = "@{$key}@";
-
-        if (!preg_match($key, $path, $pathMatches)) {
-            return;
-        }
-
-        $value = $pathMatches[$parameter['name']];
-        if ($parameter['type'] === 'array') {
-            $value = $this->explodeValue($value, $parameter);
-        }
-
-        return $value;
-    }
-
-    /**
-     * @param mixed $value
-     * @param array $parameter
-     * @return array
-     */
-    protected function explodeValue($value, array $parameter)
-    {
-        $delimiter = $this->getDelimiter($parameter);
-        return preg_split("@{$delimiter}@", $value);
-    }
-
-    /**
-     * @param array $parameter
-     * @return string
-     */
-    protected function getDelimiter(array $parameter)
-    {
-        $collectionFormat = 'csv';
-        if (isset($parameter['collectionFormat'])) {
-            $collectionFormat = $parameter['collectionFormat'];
-        }
-
-        switch ($collectionFormat) {
-            case 'csv':
-                $delimiter = ',';
-                break;
-            case 'ssv':
-                $delimiter = '\s';
-                break;
-            case 'tsv':
-                $delimiter = '\t';
-                break;
-            case 'pipes':
-                $delimiter = '|';
-                break;
-            default:
-                throw new \Exception('Invalid collection format value defined in swagger');
-                break;
-        }
-
-        return $delimiter;
     }
 
     /**
@@ -151,7 +81,7 @@ class ParameterParser
                 break;
             case 'file':
                 // todo implement file types
-                throw new \Exception('File types are not yet implemented');
+                throw new Exception('File types are not yet implemented');
                 break;
             case 'integer':
                 $value = (int) $value;
@@ -167,7 +97,7 @@ class ParameterParser
                 $value = $this->formatString($value, $parameter);
                 break;
             default:
-                throw new \Exception('Invalid parameter type value defined in swagger');
+                throw new Exception('Invalid parameter type value defined in swagger');
                 break;
         }
 
@@ -190,7 +120,7 @@ class ParameterParser
         }
 
         if (empty($type)) {
-            throw new \Exception('Parameter type is not defined in swagger');
+            throw new Exception('Parameter type is not defined in swagger');
         }
         return $type;
     }
@@ -245,7 +175,7 @@ class ParameterParser
             case 'date-time':
                 try {
                     $value = new DateTime($value);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     throw new BadRequest('Invalid date parameter passed in');
                 }
                 break;
