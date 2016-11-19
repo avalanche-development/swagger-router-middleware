@@ -4,6 +4,7 @@ namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
 use AvalancheDevelopment\Peel\HttpError\BadRequest;
 use DateTime;
+use Exception;
 use Psr\Http\Message\RequestInterface as Request;
 
 class ParameterParser
@@ -17,27 +18,8 @@ class ParameterParser
      */
     public function __invoke(Request $request, array $parameter, $route)
     {
-        switch ($parameter['in']) {
-            case 'query':
-                $value = $this->getQueryValue($request, $parameter);
-                break;
-            case 'header':
-                $value = $this->getHeaderValue($request, $parameter);
-                break;
-            case 'path':
-                $value = $this->getPathValue($request, $parameter, $route);
-                break;
-            case 'formData':
-                // todo implement form parameters
-                throw new \Exception('Form parameters are not yet implemented');
-                break;
-            case 'body':
-                $value = $this->getBodyValue($request);
-                break;
-            default:
-                throw new \Exception('Invalid parameter type defined in swagger');
-                break;
-        }
+        $parser = $this->getParser($request, $parameter, $route);
+        $value = $parser->getValue($request, $parameter);
 
         if (!isset($value) && isset($parameter['default'])) {
             $value = $parameter['default'];
@@ -50,156 +32,33 @@ class ParameterParser
     /**
      * @param Request $request
      * @param array $parameter
-     * @return mixed
-     */
-    protected function getQueryValue(Request $request, array $parameter)
-    {
-        $query = $this->parseQueryString($request);
-        if (!array_key_exists($parameter['name'], $query)) {
-            return;
-        }
-
-        $value = $query[$parameter['name']];
-        if ($parameter['type'] !== 'array') {
-            return $value;
-        }
-        if (isset($parameter['collectionFormat']) && $parameter['collectionFormat'] === 'multi') {
-            return (array) $value;
-        }
-        return $this->explodeValue($value, $parameter);
-    }
-
-    /**
-     * @param Request $request
-     * @param array $parameter
-     * @return mixed
-     */
-    protected function getHeaderValue(Request $request, array $parameter)
-    {
-        $headers = $request->getHeaders();
-        if (!array_key_exists($parameter['name'], $headers)) {
-            return;
-        }
-
-        if ($parameter['type'] !== 'array') {
-            return current($headers[$parameter['name']]);
-        }
-
-        return $headers[$parameter['name']];
-    }
-
-    /**
-     * @param Request $request
-     * @param array $parameter
      * @param string $route
-     * @return mixed
+     * @return ParserInterface
      */
-    protected function getPathValue(Request $request, array $parameter, $route)
+    protected function getParser(Request $request, array $parameter, $route)
     {
-        $path = $request->getUri()->getPath();
-        $key = str_replace(
-            '{' . $parameter['name'] . '}',
-            '(?P<' . $parameter['name'] . '>[^/]+)',
-            $route
-        );
-        $key = "@{$key}@";
-
-        if (!preg_match($key, $path, $pathMatches)) {
-            return;
-        }
-
-        $value = $pathMatches[$parameter['name']];
-        if ($parameter['type'] === 'array') {
-            $value = $this->explodeValue($value, $parameter);
-        }
-
-        return $value;
-    }
-
-    /**
-     * @param Request $request
-     * @return mixed
-     */
-    protected function getBodyValue(Request $request)
-    {
-        $body = (string) $request->getBody();
-        return $body;
-    }
-
-    /**
-     * @param Request $request
-     * @return array
-     */
-    protected function parseQueryString(Request $request)
-    {
-        $params = [];
-        $queryString = $request->getUri()->getQuery();
-        $setList = explode('&', $queryString);
-
-        foreach ($setList as $set) {
-            if (empty($set)) {
-                continue;
-            }
-
-            list($name, $value) = explode('=', $set);
-            $name = urldecode($name);
-            if (substr($name, -2) === '[]') {
-                $name = substr($name, 0, -2);
-            }
-            if (!isset($params[$name])) {
-                $params[$name] = $value;
-                continue;
-            }
-            if (!is_array($params[$name])) {
-                $params[$name] = [$params[$name]];
-            }
-            array_push($params[$name], $value);
-        }
-
-        return $params;
-    }
-
-    /**
-     * @param mixed $value
-     * @param array $parameter
-     * @return array
-     */
-    protected function explodeValue($value, array $parameter)
-    {
-        $delimiter = $this->getDelimiter($parameter);
-        return preg_split("@{$delimiter}@", $value);
-    }
-
-    /**
-     * @param array $parameter
-     * @return string
-     */
-    protected function getDelimiter(array $parameter)
-    {
-        $collectionFormat = 'csv';
-        if (isset($parameter['collectionFormat'])) {
-            $collectionFormat = $parameter['collectionFormat'];
-        }
-
-        switch ($collectionFormat) {
-            case 'csv':
-                $delimiter = ',';
+        switch ($parameter['in']) {
+            case 'query':
+                $parser = new Parser\Query($request, $parameter);
                 break;
-            case 'ssv':
-                $delimiter = '\s';
+            case 'header':
+                $parser = new Parser\Header($request, $parameter);
                 break;
-            case 'tsv':
-                $delimiter = '\t';
+            case 'path':
+                $parser = new Parser\Path($request, $parameter, $route);
                 break;
-            case 'pipes':
-                $delimiter = '|';
+            case 'formData':
+                // todo implement form parameters
+                throw new Exception('Form parameters are not yet implemented');
+                break;
+            case 'body':
+                $parser = new Parser\Body($request);
                 break;
             default:
-                throw new \Exception('Invalid collection format value defined in swagger');
+                throw new Exception('Invalid parameter type defined in swagger');
                 break;
         }
-
-        return $delimiter;
+        return $parser;
     }
 
     /**
@@ -222,7 +81,7 @@ class ParameterParser
                 break;
             case 'file':
                 // todo implement file types
-                throw new \Exception('File types are not yet implemented');
+                throw new Exception('File types are not yet implemented');
                 break;
             case 'integer':
                 $value = (int) $value;
@@ -238,7 +97,7 @@ class ParameterParser
                 $value = $this->formatString($value, $parameter);
                 break;
             default:
-                throw new \Exception('Invalid parameter type value defined in swagger');
+                throw new Exception('Invalid parameter type value defined in swagger');
                 break;
         }
 
@@ -261,7 +120,7 @@ class ParameterParser
         }
 
         if (empty($type)) {
-            throw new \Exception('Parameter type is not defined in swagger');
+            throw new Exception('Parameter type is not defined in swagger');
         }
         return $type;
     }
@@ -316,7 +175,7 @@ class ParameterParser
             case 'date-time':
                 try {
                     $value = new DateTime($value);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     throw new BadRequest('Invalid date parameter passed in');
                 }
                 break;
