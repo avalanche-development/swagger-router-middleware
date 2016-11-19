@@ -19,10 +19,11 @@ class Body implements ParserInterface
     }
 
     /**
-     * @return string
+     * @return mixed
      */
     public function getValue()
     {
+        // @todo should return null
         $body = (string) $this->request->getBody();
         return $body;
     }

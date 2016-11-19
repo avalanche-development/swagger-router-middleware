@@ -2,6 +2,7 @@
 
 namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
+use AvalancheDevelopment\SwaggerRouterMiddleware\Parser\ParserInterface;
 use DateTime;
 use PHPUnit_Framework_TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -11,144 +12,129 @@ use ReflectionClass;
 class ParameterParserTest extends PHPUnit_Framework_TestCase
 {
 
-    public function testInvokeHandlesQueryParameter()
+    public function testInvokeCallsGetParser()
     {
         $mockRequest = $this->createMock(RequestInterface::class);
-        $parameter = [ 'in' => 'query' ];
-        $route = '/some-route';
-        $value = 'some value';
+        $mockParameter = [ 'something here' ];
+        $mockRoute = '/some-route';
+        $mockValue = 'some value';
+
+        $mockParser = $this->createMock(ParserInterface::class);
+        $mockParser->method('getValue')
+            ->willReturn($mockValue);
 
         $parameterParser = $this->getMockBuilder(ParameterParser::class)
-            ->setMethods([ 'getQueryValue', 'castType' ])
+            ->setMethods([ 'getParser', 'castType' ])
             ->getMock();
         $parameterParser->expects($this->once())
-            ->method('getQueryValue')
-            ->with($mockRequest, $parameter)
-            ->willReturn($value);
-        $parameterParser->expects($this->once())
-            ->method('castType')
-            ->with($value, $parameter)
+            ->method('getParser')
+            ->with($mockRequest, $mockParameter, $mockRoute)
+            ->willReturn($mockParser);
+        $parameterParser->method('castType')
             ->will($this->returnArgument(0));
 
-        $result = $parameterParser($mockRequest, $parameter, $route);
-
-        $this->assertEquals($value, $result);
+        $parameterParser->__invoke($mockRequest, $mockParameter, $mockRoute);
     }
 
-    public function testInvokeHandlesHeaderParameter()
+    public function testInvokeUsesParserFromGetParser()
     {
         $mockRequest = $this->createMock(RequestInterface::class);
-        $parameter = [ 'in' => 'header' ];
-        $route = '/some-route';
-        $value = 'some value';
+        $mockParameter = [ 'something here' ];
+        $mockRoute = '/some-route';
+        $mockValue = 'some value';
+
+        $mockParser = $this->createMock(ParserInterface::class);
+        $mockParser->expects($this->once())
+            ->method('getValue')
+            ->willReturn($mockValue);
 
         $parameterParser = $this->getMockBuilder(ParameterParser::class)
-            ->setMethods([ 'getHeaderValue', 'castType' ])
+            ->setMethods([ 'getParser', 'castType' ])
             ->getMock();
-        $parameterParser->expects($this->once())
-            ->method('getHeaderValue')
-            ->with($mockRequest, $parameter)
-            ->willReturn($value);
-        $parameterParser->expects($this->once())
-            ->method('castType')
-            ->with($value, $parameter)
+        $parameterParser->method('getParser')
+            ->willReturn($mockParser);
+        $parameterParser->method('castType')
             ->will($this->returnArgument(0));
 
-        $result = $parameterParser($mockRequest, $parameter, $route);
-
-        $this->assertEquals($value, $result);
-    }
-
-    public function testInvokeHandlesPathParameter()
-    {
-        $mockRequest = $this->createMock(RequestInterface::class);
-        $parameter = [ 'in' => 'path' ];
-        $route = '/some-route';
-        $value = 'some value';
-
-        $parameterParser = $this->getMockBuilder(ParameterParser::class)
-            ->setMethods([ 'getPathValue', 'castType' ])
-            ->getMock();
-        $parameterParser->expects($this->once())
-            ->method('getPathValue')
-            ->with($mockRequest, $parameter, $route)
-            ->willReturn($value);
-        $parameterParser->expects($this->once())
-            ->method('castType')
-            ->with($value, $parameter)
-            ->will($this->returnArgument(0));
-
-        $result = $parameterParser($mockRequest, $parameter, $route);
-
-        $this->assertEquals($value, $result);
-    }
-
-    public function testInvokeHandlesFormParameter()
-    {
-        $this->markTestIncomplete('not yet implemented');
-    }
-
-    public function testInvokeHandlesBodyParameter()
-    {
-        $mockRequest = $this->createMock(RequestInterface::class);
-        $parameter = [ 'in' => 'body' ];
-        $route = '/some-route';
-        $value = 'some value';
-
-        $parameterParser = $this->getMockBuilder(ParameterParser::class)
-            ->setMethods([ 'getBodyValue', 'castType' ])
-            ->getMock();
-        $parameterParser->expects($this->once())
-            ->method('getBodyValue')
-            ->with($mockRequest)
-            ->willReturn($value);
-        $parameterParser->expects($this->once())
-            ->method('castType')
-            ->with($value, $parameter)
-            ->will($this->returnArgument(0));
-
-        $result = $parameterParser($mockRequest, $parameter, $route);
-
-        $this->assertEquals($value, $result);
-    }
-
-    /**
-     * @expectedException Exception
-     * @expectedExceptionMessage Invalid parameter type defined in swagger
-     */
-    public function testInvokeBailsOnInvalidParameterType()
-    {
-        $mockRequest = $this->createMock(RequestInterface::class);
-        $parameter = [ 'in' => 'some type' ];
-        $route = '/some-route';
-
-        $parameterParser = new ParameterParser;
-        $parameterParser($mockRequest, $parameter, $route);
+        $parameterParser->__invoke($mockRequest, $mockParameter, $mockRoute);
     }
 
     public function testInvokeReturnsDefaultValue()
     {
+        $expectedValue = 'some default value';
+
         $mockRequest = $this->createMock(RequestInterface::class);
-        $parameter = [
-            'in' => 'path',
-            'default' => 'some default value',
+        $mockParameter = [
+            'default' => $expectedValue,
         ];
-        $route = '/some-route';
+        $mockRoute = '/some-route';
+        $mockValue = null;
+
+        $mockParser = $this->createMock(ParserInterface::class);
+        $mockParser->method('getValue')
+            ->willReturn($mockValue);
 
         $parameterParser = $this->getMockBuilder(ParameterParser::class)
-            ->setMethods([ 'getPathValue', 'castType' ])
+            ->setMethods([ 'getParser', 'castType' ])
             ->getMock();
-        $parameterParser->expects($this->once())
-            ->method('getPathValue')
-            ->with($mockRequest, $parameter, $route);
+        $parameterParser->method('getParser')
+            ->willReturn($mockParser);
         $parameterParser->expects($this->once())
             ->method('castType')
-            ->with($parameter['default'], $parameter)
+            ->with($expectedValue, $mockParameter)
             ->will($this->returnArgument(0));
 
-        $result = $parameterParser($mockRequest, $parameter, $route);
+        $parameterParser->__invoke($mockRequest, $mockParameter, $mockRoute);
+    }
 
-        $this->assertEquals($parameter['default'], $result);
+    public function testInvokeUsesValueFromParser()
+    {
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockParameter = [ 'something here' ];
+        $mockRoute = '/some-route';
+        $mockValue = 'some value';
+
+        $mockParser = $this->createMock(ParserInterface::class);
+        $mockParser->method('getValue')
+            ->willReturn($mockValue);
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getParser', 'castType' ])
+            ->getMock();
+        $parameterParser->method('getParser')
+            ->willReturn($mockParser);
+        $parameterParser->expects($this->once())
+            ->method('castType')
+            ->with($mockValue, $mockParameter)
+            ->will($this->returnArgument(0));
+
+        $parameterParser->__invoke($mockRequest, $mockParameter, $mockRoute);
+    }
+
+    public function testInvokeReturnsCastValue()
+    {
+        $expectedValue = 'some value';
+
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockParameter = [ 'something here' ];
+        $mockRoute = '/some-route';
+        $mockValue = 'some other value';
+
+        $mockParser = $this->createMock(ParserInterface::class);
+        $mockParser->method('getValue')
+            ->willReturn($mockValue);
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getParser', 'castType' ])
+            ->getMock();
+        $parameterParser->method('getParser')
+            ->willReturn($mockParser);
+        $parameterParser->method('castType')
+            ->willReturn($expectedValue);
+
+        $result = $parameterParser->__invoke($mockRequest, $mockParameter, $mockRoute);
+
+        $this->assertSame($expectedValue, $result);
     }
 
     public function testCastTypeHandlesArray()
