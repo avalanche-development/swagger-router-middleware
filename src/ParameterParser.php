@@ -48,8 +48,7 @@ class ParameterParser
                 $parser = new Parser\Path($request, $parameter, $route);
                 break;
             case 'formData':
-                // todo implement form parameters
-                throw new Exception('Form parameters are not yet implemented');
+                $parser = new Parser\Form($request, $parameter);
                 break;
             case 'body':
                 $parser = new Parser\Body($request);
