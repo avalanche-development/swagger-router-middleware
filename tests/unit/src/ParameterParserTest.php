@@ -244,7 +244,36 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testGetParserHandlesFormParameter()
     {
-        $this->markTestIncomplete('not yet implemented');
+        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockParameter = [
+            'in' => 'formData',
+        ];
+        $mockRoute = '/some-route';
+
+        $reflectedFormParser = new ReflectionClass(Parser\Form::class);
+        $reflectedRequest = $reflectedFormParser->getProperty('request');
+        $reflectedRequest->setAccessible(true);
+        $reflectedParameter = $reflectedFormParser->getProperty('parameter');
+        $reflectedParameter->setAccessible(true);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedGetParser = $reflectedParameterParser->getMethod('getParser');
+        $reflectedGetParser->setAccessible(true);
+
+        $parameterParser = new ParameterParser;
+        $result = $reflectedGetParser->invokeArgs(
+            $parameterParser,
+            [
+                $mockRequest,
+                $mockParameter,
+                $mockRoute,
+            ]
+        );
+
+        $this->assertInstanceOf(ParserInterface::class, $result);
+        $this->assertInstanceOf(Parser\Form::class, $result);
+        $this->assertAttributeSame($mockRequest, 'request', $result);
+        $this->assertAttributeSame($mockParameter, 'parameter', $result);
     }
 
     public function testGetParserHandlesBodyParameter()
