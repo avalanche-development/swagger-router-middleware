@@ -5,7 +5,7 @@ namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 use AvalancheDevelopment\SwaggerRouterMiddleware\Parser\ParserInterface;
 use DateTime;
 use PHPUnit_Framework_TestCase;
-use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use ReflectionClass;
 
@@ -14,7 +14,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testInvokeCallsGetParser()
     {
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
         $mockParameter = [ 'something here' ];
         $mockRoute = '/some-route';
         $mockValue = 'some value';
@@ -38,7 +38,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testInvokeUsesParserFromGetParser()
     {
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
         $mockParameter = [ 'something here' ];
         $mockRoute = '/some-route';
         $mockValue = 'some value';
@@ -63,7 +63,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
     {
         $expectedValue = 'some default value';
 
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
         $mockParameter = [
             'default' => $expectedValue,
         ];
@@ -89,7 +89,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testInvokeUsesValueFromParser()
     {
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
         $mockParameter = [ 'something here' ];
         $mockRoute = '/some-route';
         $mockValue = 'some value';
@@ -115,7 +115,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
     {
         $expectedValue = 'some value';
 
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
         $mockParameter = [ 'something here' ];
         $mockRoute = '/some-route';
         $mockValue = 'some other value';
@@ -139,7 +139,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testGetParserHandlesQueryParameter()
     {
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
         $mockParameter = [
             'in' => 'query',
         ];
@@ -173,7 +173,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testGetParserHandlesHeaderParameter()
     {
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
         $mockParameter = [
             'in' => 'header',
         ];
@@ -207,7 +207,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testGetParserHandlesPathParameter()
     {
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
         $mockParameter = [
             'in' => 'path',
         ];
@@ -244,7 +244,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testGetParserHandlesFormParameter()
     {
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
         $mockParameter = [
             'in' => 'formData',
         ];
@@ -278,7 +278,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testGetParserHandlesBodyParameter()
     {
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
         $mockParameter = [
             'in' => 'body',
         ];
@@ -313,7 +313,7 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
      */
     public function testGetParserBailsOnInvalidParameter()
     {
-        $mockRequest = $this->createMock(RequestInterface::class);
+        $mockRequest = $this->createMock(ServerRequestInterface::class);
         $mockParameter = [
             'in' => 'invalid',
         ];

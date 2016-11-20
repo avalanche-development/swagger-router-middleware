@@ -5,7 +5,7 @@ namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 use AvalancheDevelopment\Peel\HttpError\BadRequest;
 use DateTime;
 use Exception;
-use Psr\Http\Message\RequestInterface as Request;
+use Psr\Http\Message\ServerRequestInterface as Request;
 
 class ParameterParser
 {

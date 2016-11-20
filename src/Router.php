@@ -12,7 +12,7 @@ namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
 use AvalancheDevelopment\Peel\HttpError\MethodNotAllowed;
 use AvalancheDevelopment\Peel\HttpError\NotFound;
-use Psr\Http\Message\RequestInterface as Request;
+use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
