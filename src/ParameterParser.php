@@ -5,7 +5,7 @@ namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 use AvalancheDevelopment\Peel\HttpError\BadRequest;
 use DateTime;
 use Exception;
-use Psr\Http\Message\RequestInterface as Request;
+use Psr\Http\Message\ServerRequestInterface as Request;
 
 class ParameterParser
 {
@@ -48,8 +48,7 @@ class ParameterParser
                 $parser = new Parser\Path($request, $parameter, $route);
                 break;
             case 'formData':
-                // todo implement form parameters
-                throw new Exception('Form parameters are not yet implemented');
+                $parser = new Parser\Form($request, $parameter);
                 break;
             case 'body':
                 $parser = new Parser\Body($request);
