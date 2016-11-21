@@ -30,6 +30,14 @@ class Form implements ParserInterface
      */
     public function getValue()
     {
+        if ($this->parameter['type'] === 'file') {
+            $files = $this->request->getUploadedFiles();
+            if (!array_key_exists($this->parameter['name'], $files)) {
+                return;
+            }
+            return $files[$this->parameter['name']];
+        }
+
         $body = $this->request->getParsedBody();
         if (!array_key_exists($this->parameter['name'], $body)) {
             return;
