@@ -6,6 +6,7 @@ use AvalancheDevelopment\SwaggerRouterMiddleware\Parser\ParserInterface;
 use DateTime;
 use PHPUnit_Framework_TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriInterface;
 use ReflectionClass;
 
@@ -404,7 +405,32 @@ class ParameterParserTest extends PHPUnit_Framework_TestCase
 
     public function testCastTypeHandlesFile()
     {
-        $this->markTestIncomplete('not yet implemented');
+        $parameter = [
+            'some value'
+        ];
+        $value = $this->createMock(UploadedFileInterface::class);
+
+        $reflectedParameterParser = new ReflectionClass(ParameterParser::class);
+        $reflectedCastType = $reflectedParameterParser->getMethod('castType');
+        $reflectedCastType->setAccessible(true);
+
+        $parameterParser = $this->getMockBuilder(ParameterParser::class)
+            ->setMethods([ 'getParameterType' ])
+            ->getMock();
+        $parameterParser->expects($this->once())
+            ->method('getParameterType')
+            ->with($parameter)
+            ->willReturn('file');
+
+        $result = $reflectedCastType->invokeArgs(
+            $parameterParser,
+            [
+                $value,
+                $parameter,
+            ]
+        );
+
+        $this->assertSame($value, $result);
     }
 
     public function testCastTypeHandlesInteger()

@@ -79,8 +79,6 @@ class ParameterParser
                 $value = (boolean) $value;
                 break;
             case 'file':
-                // todo implement file types
-                throw new Exception('File types are not yet implemented');
                 break;
             case 'integer':
                 $value = (int) $value;
