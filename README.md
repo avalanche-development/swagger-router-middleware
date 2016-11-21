@@ -60,7 +60,7 @@ Again, this middleware will not check the existence or validity of parameters ba
 
 ## Development
 
-This library is in active development. Some things are not yet supported (such as file parameters). These features will throw an \Exception if they are hit.
+This library is still being developed and some bugs may be experienced. Feel free to add issues or submit pull requests when road bumps are noticed.
 
 ### Tests
 
