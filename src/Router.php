@@ -146,7 +146,7 @@ class Router implements LoggerAwareInterface
         $resolvedChunk = [];
         foreach ($chunk as $key => $value) {
             if ($value === '$ref') {
-                // reassign value
+                $value = $this->lookupReference($chunk[$key]);
             }
             if (is_array($value)) {
                 $resolvedChunk[$key] = $this->resolveRefs($value);
@@ -155,6 +155,29 @@ class Router implements LoggerAwareInterface
             $resolvedChunk[$key] = $value;
         }
         return $resolvedChunk;
+    }
+
+    /**
+     * @param string $reference
+     * @return mixed
+     */
+    protected function lookupReference($reference)
+    {
+        if (substr($reference, 0, 2) !== '#/') {
+            throw new \Exception('invalid json reference found in swagger');
+        }
+
+        $reference = substr($reference, 2);
+        $reference = explode($reference, '/');
+
+        $referencedObject = $this->swagger;
+        foreach ($reference as $referencePiece) {
+            if (!array_key_exists($referencePiece, $referencedObject)) {
+                throw new \Exception('unknown reference found in swagger');
+            }
+            $referencedObject = $referencedObject[$referencePiece];
+        }
+        return $referencedObject;
     }
 
     /**
