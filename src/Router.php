@@ -72,6 +72,8 @@ class Router implements LoggerAwareInterface
             throw new NotFound('No match found in swagger docs');
         }
 
+        $pathItem = $this->resolveRefs($pathItem);
+
         $method = strtolower($request->getMethod());
         if (!array_key_exists($method, $pathItem)) {
             $this->log('no method found for path, exiting with MethodNotAllowed exception');
@@ -133,6 +135,26 @@ class Router implements LoggerAwareInterface
         }
 
         return false;
+    }
+
+    /**
+     * @param array $chunk
+     * @return array
+     */
+    protected function resolveRefs(array $chunk)
+    {
+        $resolvedChunk = [];
+        foreach ($chunk as $key => $value) {
+            if ($value === '$ref') {
+                // reassign value
+            }
+            if (is_array($value)) {
+                $resolvedChunk[$key] = $this->resolveRefs($value);
+                continue;
+            }
+            $resolvedChunk[$key] = $value;
+        }
+        return $resolvedChunk;
     }
 
     /**
