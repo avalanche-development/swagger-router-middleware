@@ -168,12 +168,12 @@ class Router implements LoggerAwareInterface
         }
 
         $reference = substr($reference, 2);
-        $reference = explode($reference, '/');
+        $reference = explode('/', $reference);
 
         $referencedObject = $this->swagger;
         foreach ($reference as $referencePiece) {
             if (!array_key_exists($referencePiece, $referencedObject)) {
-                throw new \Exception('unknown reference found in swagger');
+                throw new \Exception('reference not found in swagger');
             }
             $referencedObject = $referencedObject[$referencePiece];
         }

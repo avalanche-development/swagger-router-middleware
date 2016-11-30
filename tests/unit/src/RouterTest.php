@@ -919,6 +919,89 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($result);
     }
 
+    public function testResolveRefsReturnsOriginalStructureIfNoRefs()
+    {
+        $this->markTestIncomplete();
+    }
+
+    public function testResolveRefsReplacesRefsWithReferences()
+    {
+        $this->markTestIncomplete();
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage invalid json reference found in swagger
+     */
+    public function testLookupReferenceBailsOnBadStructure()
+    {
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedLookupReference = $reflectedRouter->getMethod('lookupReference');
+        $reflectedLookupReference->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedLookupReference->invokeArgs(
+            $router,
+            [
+                'invalid reference',
+            ]
+        );
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage reference not found in swagger
+     */
+    public function testLookupReferenceBailsIfNotInSwagger()
+    {
+        $reference = '#/definitions/SomeValue';
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedLookupReference = $reflectedRouter->getMethod('lookupReference');
+        $reflectedLookupReference->setAccessible(true);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, []);
+        $reflectedLookupReference->invokeArgs(
+            $router,
+            [
+                $reference,
+            ]
+        );
+    }
+
+    public function testLookupReferenceReturnsObjectIfFound()
+    {
+        $reference = '#/definitions/SomeValue';
+        $referencedObject = [
+            'some object',
+        ];
+        $swagger = [
+            'definitions' => [
+                'SomeValue' => $referencedObject,
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedLookupReference = $reflectedRouter->getMethod('lookupReference');
+        $reflectedLookupReference->setAccessible(true);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedLookupReference->invokeArgs(
+            $router,
+            [
+                $reference,
+            ]
+        );
+
+        $this->assertEquals($referencedObject, $result);
+    }
+
     public function testGetParametersHandlesNoParameters()
     {
         $reflectedRouter = new ReflectionClass(Router::class);
