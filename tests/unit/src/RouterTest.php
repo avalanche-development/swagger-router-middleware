@@ -921,12 +921,108 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
     public function testResolveRefsReturnsOriginalStructureIfNoRefs()
     {
-        $this->markTestIncomplete();
+        $mockChunk = [
+            'get' => [
+                'description' => 'something',
+                'parameters' => [
+                    [
+                        'name' => 'id',
+                        'in' => 'path',
+                    ],
+                ],
+                'responses' => [
+                    '200' => [
+                        'description' => 'huzzah',
+                    ],
+                ],
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedResolveRefs = $reflectedRouter->getMethod('resolveRefs');
+        $reflectedResolveRefs->setAccessible(true);
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'lookupReference',
+            ])
+            ->getMock();
+        $router->expects($this->never())
+            ->method('lookupReference');
+
+        $result = $reflectedResolveRefs->invokeArgs(
+            $router,
+            [
+                $mockChunk,
+            ]
+        );
+
+        $this->assertEquals($mockChunk, $result);
     }
 
     public function testResolveRefsReplacesRefsWithReferences()
     {
-        $this->markTestIncomplete();
+        $expectedValue = [
+            'get' => [
+                'description' => 'something',
+                'parameters' => [
+                    [
+                        'name' => 'id',
+                        'in' => 'path',
+                    ],
+                ],
+                'responses' => [
+                    '200' => [
+                        'description' => 'huzzah',
+                    ],
+                ],
+            ],
+        ];
+ 
+        $mockChunk = [
+            'get' => [
+                'description' => 'something',
+                'parameters' => [
+                    [
+                        '$ref' => '#/definitions/Id',
+                    ],
+                ],
+                'responses' => [
+                    '200' => [
+                        'description' => 'huzzah',
+                    ],
+                ],
+            ],
+        ];
+        $mockReferencedObject = [
+            'name' => 'id',
+            'in' => 'path',
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedResolveRefs = $reflectedRouter->getMethod('resolveRefs');
+        $reflectedResolveRefs->setAccessible(true);
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'lookupReference',
+            ])
+            ->getMock();
+        $router->expects($this->once())
+            ->method('lookupReference')
+            ->with('#/definitions/Id')
+            ->willReturn($mockReferencedObject);
+
+        $result = $reflectedResolveRefs->invokeArgs(
+            $router,
+            [
+                $mockChunk,
+            ]
+        );
+
+        $this->assertEquals($expectedValue, $result);
     }
 
     /**

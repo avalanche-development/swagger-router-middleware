@@ -145,8 +145,9 @@ class Router implements LoggerAwareInterface
     {
         $resolvedChunk = [];
         foreach ($chunk as $key => $value) {
-            if ($value === '$ref') {
-                $value = $this->lookupReference($chunk[$key]);
+            if ($key === '$ref') {
+                $resolvedChunk = array_merge($resolvedChunk, $this->lookupReference($value));
+                continue;
             }
             if (is_array($value)) {
                 $resolvedChunk[$key] = $this->resolveRefs($value);
