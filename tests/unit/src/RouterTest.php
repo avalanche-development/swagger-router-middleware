@@ -223,6 +223,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'isDocumentationRoute',
                 'log',
                 'matchPath',
+                'resolveRefs',
             ])
             ->getMock();
         $router->expects($this->once())
@@ -239,6 +240,8 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('matchPath')
             ->with($mockRequest, $route)
             ->willReturn(false);
+        $router->expects($this->never())
+            ->method('resolveRefs');
 
         $reflectedSwagger->setValue($router, [ 'paths' => [ $route => [] ] ]);
 
@@ -283,11 +286,15 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'getParameters',
                 'isDocumentationRoute',
                 'log',
                 'matchPath',
+                'resolveRefs',
             ])
             ->getMock();
+        $router->expects($this->never())
+            ->method('getParameters');
         $router->expects($this->once())
             ->method('isDocumentationRoute')
             ->with($mockRequest)
@@ -302,6 +309,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('matchPath')
             ->with($mockRequest, key($path))
             ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
@@ -360,6 +371,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'isDocumentationRoute',
                 'log',
                 'matchPath',
+                'resolveRefs',
             ])
             ->getMock();
         $router->expects($this->once())
@@ -402,6 +414,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('matchPath')
             ->with($mockRequest, key($path))
             ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
@@ -448,12 +464,24 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'getParameters',
+                'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
                 'log',
                 'matchPath',
+                'resolveRefs',
             ])
             ->getMock();
+        $router->expects($this->once())
+            ->method('getParameters')
+            ->with(
+                current($path),
+                current($path)['get']
+            )
+            ->willReturn([]);
+        $router->expects($this->never())
+            ->method('getSecurity');
         $router->expects($this->once())
             ->method('hydrateParameterValues')
             ->with(
@@ -477,6 +505,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('matchPath')
             ->with($mockRequest, key($path))
             ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
@@ -540,6 +572,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'isDocumentationRoute',
                 'log',
                 'matchPath',
+                'resolveRefs',
               ])
             ->getMock();
         $router->expects($this->once())
@@ -582,6 +615,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('matchPath')
             ->with($mockRequest, key($path))
             ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
@@ -646,6 +683,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'isDocumentationRoute',
                 'log',
                 'matchPath',
+                'resolveRefs',
               ])
             ->getMock();
         $router->expects($this->once())
@@ -688,6 +726,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('matchPath')
             ->with($mockRequest, key($path))
             ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
