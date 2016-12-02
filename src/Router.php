@@ -72,6 +72,8 @@ class Router implements LoggerAwareInterface
             throw new NotFound('No match found in swagger docs');
         }
 
+        $pathItem = $this->resolveRefs($pathItem);
+
         $method = strtolower($request->getMethod());
         if (!array_key_exists($method, $pathItem)) {
             $this->log('no method found for path, exiting with MethodNotAllowed exception');
@@ -133,6 +135,50 @@ class Router implements LoggerAwareInterface
         }
 
         return false;
+    }
+
+    /**
+     * @param array $chunk
+     * @return array
+     */
+    protected function resolveRefs(array $chunk)
+    {
+        $resolvedChunk = [];
+        foreach ($chunk as $key => $value) {
+            if ($key === '$ref') {
+                $resolvedChunk = array_merge($resolvedChunk, $this->lookupReference($value));
+                continue;
+            }
+            if (is_array($value)) {
+                $resolvedChunk[$key] = $this->resolveRefs($value);
+                continue;
+            }
+            $resolvedChunk[$key] = $value;
+        }
+        return $resolvedChunk;
+    }
+
+    /**
+     * @param string $reference
+     * @return mixed
+     */
+    protected function lookupReference($reference)
+    {
+        if (substr($reference, 0, 2) !== '#/') {
+            throw new \Exception('invalid json reference found in swagger');
+        }
+
+        $reference = substr($reference, 2);
+        $reference = explode('/', $reference);
+
+        $referencedObject = $this->swagger;
+        foreach ($reference as $referencePiece) {
+            if (!array_key_exists($referencePiece, $referencedObject)) {
+                throw new \Exception('reference not found in swagger');
+            }
+            $referencedObject = $referencedObject[$referencePiece];
+        }
+        return $referencedObject;
     }
 
     /**

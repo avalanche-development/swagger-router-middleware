@@ -223,6 +223,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'isDocumentationRoute',
                 'log',
                 'matchPath',
+                'resolveRefs',
             ])
             ->getMock();
         $router->expects($this->once())
@@ -239,6 +240,8 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('matchPath')
             ->with($mockRequest, $route)
             ->willReturn(false);
+        $router->expects($this->never())
+            ->method('resolveRefs');
 
         $reflectedSwagger->setValue($router, [ 'paths' => [ $route => [] ] ]);
 
@@ -283,11 +286,15 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'getParameters',
                 'isDocumentationRoute',
                 'log',
                 'matchPath',
+                'resolveRefs',
             ])
             ->getMock();
+        $router->expects($this->never())
+            ->method('getParameters');
         $router->expects($this->once())
             ->method('isDocumentationRoute')
             ->with($mockRequest)
@@ -302,6 +309,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('matchPath')
             ->with($mockRequest, key($path))
             ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
@@ -360,6 +371,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'isDocumentationRoute',
                 'log',
                 'matchPath',
+                'resolveRefs',
             ])
             ->getMock();
         $router->expects($this->once())
@@ -402,6 +414,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('matchPath')
             ->with($mockRequest, key($path))
             ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
@@ -448,12 +464,24 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'getParameters',
+                'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
                 'log',
                 'matchPath',
+                'resolveRefs',
             ])
             ->getMock();
+        $router->expects($this->once())
+            ->method('getParameters')
+            ->with(
+                current($path),
+                current($path)['get']
+            )
+            ->willReturn([]);
+        $router->expects($this->never())
+            ->method('getSecurity');
         $router->expects($this->once())
             ->method('hydrateParameterValues')
             ->with(
@@ -477,6 +505,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('matchPath')
             ->with($mockRequest, key($path))
             ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
@@ -540,6 +572,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'isDocumentationRoute',
                 'log',
                 'matchPath',
+                'resolveRefs',
               ])
             ->getMock();
         $router->expects($this->once())
@@ -582,6 +615,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('matchPath')
             ->with($mockRequest, key($path))
             ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
@@ -646,6 +683,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'isDocumentationRoute',
                 'log',
                 'matchPath',
+                'resolveRefs',
               ])
             ->getMock();
         $router->expects($this->once())
@@ -688,6 +726,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('matchPath')
             ->with($mockRequest, key($path))
             ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
 
         $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
 
@@ -875,6 +917,185 @@ class RouterTest extends PHPUnit_Framework_TestCase
         );
 
         $this->assertFalse($result);
+    }
+
+    public function testResolveRefsReturnsOriginalStructureIfNoRefs()
+    {
+        $mockChunk = [
+            'get' => [
+                'description' => 'something',
+                'parameters' => [
+                    [
+                        'name' => 'id',
+                        'in' => 'path',
+                    ],
+                ],
+                'responses' => [
+                    '200' => [
+                        'description' => 'huzzah',
+                    ],
+                ],
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedResolveRefs = $reflectedRouter->getMethod('resolveRefs');
+        $reflectedResolveRefs->setAccessible(true);
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'lookupReference',
+            ])
+            ->getMock();
+        $router->expects($this->never())
+            ->method('lookupReference');
+
+        $result = $reflectedResolveRefs->invokeArgs(
+            $router,
+            [
+                $mockChunk,
+            ]
+        );
+
+        $this->assertEquals($mockChunk, $result);
+    }
+
+    public function testResolveRefsReplacesRefsWithReferences()
+    {
+        $expectedValue = [
+            'get' => [
+                'description' => 'something',
+                'parameters' => [
+                    [
+                        'name' => 'id',
+                        'in' => 'path',
+                    ],
+                ],
+                'responses' => [
+                    '200' => [
+                        'description' => 'huzzah',
+                    ],
+                ],
+            ],
+        ];
+ 
+        $mockChunk = [
+            'get' => [
+                'description' => 'something',
+                'parameters' => [
+                    [
+                        '$ref' => '#/definitions/Id',
+                    ],
+                ],
+                'responses' => [
+                    '200' => [
+                        'description' => 'huzzah',
+                    ],
+                ],
+            ],
+        ];
+        $mockReferencedObject = [
+            'name' => 'id',
+            'in' => 'path',
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedResolveRefs = $reflectedRouter->getMethod('resolveRefs');
+        $reflectedResolveRefs->setAccessible(true);
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'lookupReference',
+            ])
+            ->getMock();
+        $router->expects($this->once())
+            ->method('lookupReference')
+            ->with('#/definitions/Id')
+            ->willReturn($mockReferencedObject);
+
+        $result = $reflectedResolveRefs->invokeArgs(
+            $router,
+            [
+                $mockChunk,
+            ]
+        );
+
+        $this->assertEquals($expectedValue, $result);
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage invalid json reference found in swagger
+     */
+    public function testLookupReferenceBailsOnBadStructure()
+    {
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedLookupReference = $reflectedRouter->getMethod('lookupReference');
+        $reflectedLookupReference->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedLookupReference->invokeArgs(
+            $router,
+            [
+                'invalid reference',
+            ]
+        );
+    }
+
+    /**
+     * @expectedException Exception
+     * @expectedExceptionMessage reference not found in swagger
+     */
+    public function testLookupReferenceBailsIfNotInSwagger()
+    {
+        $reference = '#/definitions/SomeValue';
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedLookupReference = $reflectedRouter->getMethod('lookupReference');
+        $reflectedLookupReference->setAccessible(true);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, []);
+        $reflectedLookupReference->invokeArgs(
+            $router,
+            [
+                $reference,
+            ]
+        );
+    }
+
+    public function testLookupReferenceReturnsObjectIfFound()
+    {
+        $reference = '#/definitions/SomeValue';
+        $referencedObject = [
+            'some object',
+        ];
+        $swagger = [
+            'definitions' => [
+                'SomeValue' => $referencedObject,
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedLookupReference = $reflectedRouter->getMethod('lookupReference');
+        $reflectedLookupReference->setAccessible(true);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedLookupReference->invokeArgs(
+            $router,
+            [
+                $reference,
+            ]
+        );
+
+        $this->assertEquals($referencedObject, $result);
     }
 
     public function testGetParametersHandlesNoParameters()
