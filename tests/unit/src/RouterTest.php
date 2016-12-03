@@ -351,6 +351,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'security' => [],
                 'produces' => [],
                 'consumes' => [],
+                'responses' => [],
             ])
             ->will($this->returnSelf());
 
@@ -366,6 +367,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'getConsumes',
                 'getParameters',
                 'getProduces',
+                'getResponses',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -384,6 +386,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getProduces')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getResponses')
             ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
@@ -552,6 +558,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'security' => [],
                 'produces' => [],
                 'consumes' => [],
+                'responses' => [],
             ])
             ->will($this->returnSelf());
 
@@ -567,6 +574,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'getConsumes',
                 'getParameters',
                 'getProduces',
+                'getResponses',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -585,6 +593,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([ $parameter ]);
         $router->expects($this->once())
             ->method('getProduces')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getResponses')
             ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
@@ -663,6 +675,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'security' => $security,
                 'produces' => [],
                 'consumes' => [],
+                'responses' => [],
             ])
             ->will($this->returnSelf());
 
@@ -678,6 +691,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'getConsumes',
                 'getParameters',
                 'getProduces',
+                'getResponses',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -699,9 +713,364 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
+            ->method('getResponses')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
             ->method('getSecurity')
             ->with(current($path)['get'])
             ->willReturn($security);
+        $router->expects($this->once())
+            ->method('hydrateParameterValues')
+            ->with(
+                $this->isInstanceOf(ParameterParser::class),
+                $mockRequest,
+                [],
+                key($path)
+            )
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('isDocumentationRoute')
+            ->with($mockRequest)
+            ->willReturn(false);
+        $router->expects($this->exactly(3))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ],
+                [ 'finished' ]
+            );
+        $router->expects($this->once())
+            ->method('matchPath')
+            ->with($mockRequest, key($path))
+            ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
+
+        $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
+
+        $result = $router($mockRequest, $mockResponse, $callback);
+
+        $this->assertSame($mockResponse, $result);
+    }
+
+    public function testInvokationReturnsProduces()
+    {
+        $path = [
+            '/test-path' => [
+                'get' => [
+                    'description' => 'Some operation',
+                    'responses' => [],
+                ],
+            ],
+        ];
+
+        $produces = [
+            'mime type',
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $mockUri = $this->createMock(Uri::class);
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('GET');
+        $mockRequest->expects($this->once())
+            ->method('withAttribute')
+            ->with('swagger', [
+                'apiPath' => key($path),
+                'path' => current($path),
+                'operation' => current($path)['get'],
+                'params' => [],
+                'security' => [],
+                'produces' => $produces,
+                'consumes' => [],
+                'responses' => [],
+            ])
+            ->will($this->returnSelf());
+
+        $mockResponse = $this->createMock(Response::class);
+
+        $callback = function ($request, $response) {
+            return $response;
+        };
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'getConsumes',
+                'getParameters',
+                'getProduces',
+                'getResponses',
+                'getSecurity',
+                'hydrateParameterValues',
+                'isDocumentationRoute',
+                'log',
+                'matchPath',
+                'resolveRefs',
+              ])
+            ->getMock();
+        $router->expects($this->once())
+            ->method('getConsumes')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getParameters')
+            ->with(current($path), current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getProduces')
+            ->with(current($path)['get'])
+            ->willReturn($produces);
+        $router->expects($this->once())
+            ->method('getResponses')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getSecurity')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('hydrateParameterValues')
+            ->with(
+                $this->isInstanceOf(ParameterParser::class),
+                $mockRequest,
+                [],
+                key($path)
+            )
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('isDocumentationRoute')
+            ->with($mockRequest)
+            ->willReturn(false);
+        $router->expects($this->exactly(3))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ],
+                [ 'finished' ]
+            );
+        $router->expects($this->once())
+            ->method('matchPath')
+            ->with($mockRequest, key($path))
+            ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
+
+        $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
+
+        $result = $router($mockRequest, $mockResponse, $callback);
+
+        $this->assertSame($mockResponse, $result);
+    }
+
+    public function testInvokationReturnsConsumes()
+    {
+        $path = [
+            '/test-path' => [
+                'get' => [
+                    'description' => 'Some operation',
+                    'responses' => [],
+                ],
+            ],
+        ];
+
+        $consumes = [
+            'mime type',
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $mockUri = $this->createMock(Uri::class);
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('GET');
+        $mockRequest->expects($this->once())
+            ->method('withAttribute')
+            ->with('swagger', [
+                'apiPath' => key($path),
+                'path' => current($path),
+                'operation' => current($path)['get'],
+                'params' => [],
+                'security' => [],
+                'produces' => [],
+                'consumes' => $consumes,
+                'responses' => [],
+            ])
+            ->will($this->returnSelf());
+
+        $mockResponse = $this->createMock(Response::class);
+
+        $callback = function ($request, $response) {
+            return $response;
+        };
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'getConsumes',
+                'getParameters',
+                'getProduces',
+                'getResponses',
+                'getSecurity',
+                'hydrateParameterValues',
+                'isDocumentationRoute',
+                'log',
+                'matchPath',
+                'resolveRefs',
+              ])
+            ->getMock();
+        $router->expects($this->once())
+            ->method('getConsumes')
+            ->with(current($path)['get'])
+            ->willReturn($consumes);
+        $router->expects($this->once())
+            ->method('getParameters')
+            ->with(current($path), current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getProduces')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getResponses')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getSecurity')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('hydrateParameterValues')
+            ->with(
+                $this->isInstanceOf(ParameterParser::class),
+                $mockRequest,
+                [],
+                key($path)
+            )
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('isDocumentationRoute')
+            ->with($mockRequest)
+            ->willReturn(false);
+        $router->expects($this->exactly(3))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ],
+                [ 'finished' ]
+            );
+        $router->expects($this->once())
+            ->method('matchPath')
+            ->with($mockRequest, key($path))
+            ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
+
+        $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
+
+        $result = $router($mockRequest, $mockResponse, $callback);
+
+        $this->assertSame($mockResponse, $result);
+    }
+
+    public function testInvokationReturnsResponses()
+    {
+        $path = [
+            '/test-path' => [
+                'get' => [
+                    'description' => 'Some operation',
+                    'responses' => [],
+                ],
+            ],
+        ];
+
+        $responses = [
+            'some response objects',
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $mockUri = $this->createMock(Uri::class);
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('GET');
+        $mockRequest->expects($this->once())
+            ->method('withAttribute')
+            ->with('swagger', [
+                'apiPath' => key($path),
+                'path' => current($path),
+                'operation' => current($path)['get'],
+                'params' => [],
+                'security' => [],
+                'produces' => [],
+                'consumes' => [],
+                'responses' => $responses,
+            ])
+            ->will($this->returnSelf());
+
+        $mockResponse = $this->createMock(Response::class);
+
+        $callback = function ($request, $response) {
+            return $response;
+        };
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'getConsumes',
+                'getParameters',
+                'getProduces',
+                'getResponses',
+                'getSecurity',
+                'hydrateParameterValues',
+                'isDocumentationRoute',
+                'log',
+                'matchPath',
+                'resolveRefs',
+              ])
+            ->getMock();
+        $router->expects($this->once())
+            ->method('getConsumes')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getParameters')
+            ->with(current($path), current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getProduces')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getResponses')
+            ->with(current($path)['get'])
+            ->willReturn($responses);
+        $router->expects($this->once())
+            ->method('getSecurity')
+            ->with(current($path)['get'])
+            ->willReturn([]);
         $router->expects($this->once())
             ->method('hydrateParameterValues')
             ->with(
@@ -1598,6 +1967,41 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $result = $reflectedGetConsumes->invokeArgs($router, [[]]);
 
         $this->assertEquals($swagger['consumes'], $result);
+    }
+
+    public function testGetResponsesReturnsEmptyAsDefault()
+    {
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedGetResponses = $reflectedRouter->getMethod('getResponses');
+        $reflectedGetResponses->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedGetResponses->invokeArgs($router, [[]]);
+
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetResponsesReturnsOperationResponses()
+    {
+        $swagger = [];
+
+        $operation = [
+            'responses' => [
+                'some response objects',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetResponses = $reflectedRouter->getMethod('getResponses');
+        $reflectedGetResponses->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetResponses->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals($operation['responses'], $result);
     }
 
     public function testLog()
