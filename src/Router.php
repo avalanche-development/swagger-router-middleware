@@ -88,6 +88,7 @@ class Router implements LoggerAwareInterface
         $security = $this->getSecurity($operation);
         $produces = $this->getProduces($operation);
         $consumes = $this->getConsumes($operation);
+        $responses = $this->getResponses($operation);
 
         $request = $request->withAttribute('swagger', [
             'apiPath' => $route,
@@ -97,6 +98,7 @@ class Router implements LoggerAwareInterface
             'security' => $security,
             'produces' => $produces,
             'consumes' => $consumes,
+            'responses' => $responses,
         ]);
 
         $this->log('finished');
@@ -297,6 +299,21 @@ class Router implements LoggerAwareInterface
         }
 
         return $consumes;
+    }
+
+    /**
+     * @param array $operation
+     * @return array
+     */
+    protected function getResponses(array $operation)
+    {
+        $responses = [];
+
+        if (array_key_exists('responses', $operation)) {
+            $responses = $operation['responses'];
+        }
+
+        return $responses;
     }
 
     /**
