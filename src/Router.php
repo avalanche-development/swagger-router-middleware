@@ -276,14 +276,14 @@ class Router implements LoggerAwareInterface
      */
     protected function getSchemes(array $operation, Request $request)
     {
+        $schemes = [
+            $request->getUri()->getScheme(),
+        ];
+
         if (array_key_exists('schemes', $operation)) {
             $schemes = $operation['schemes'];
         } elseif (isset($this->swagger['schemes'])) {
             $schemes = $this->swagger['schemes'];
-        } else {
-            $schemes = [
-                $request->getUri()->getScheme(),
-            ];
         }
 
         return $schemes;

@@ -1961,6 +1961,32 @@ class RouterTest extends PHPUnit_Framework_TestCase
         ], $result);
     }
 
+    public function testGetSchemesReturnsRequestSchemeAsDefault()
+    {
+        $requestScheme = 'valid scheme';
+
+        $mockUri = $this->createMock(Uri::class);
+        $mockUri->expects($this->once())
+            ->method('getScheme')
+            ->willReturn($requestScheme);
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->expects($this->once())
+            ->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedGetSchemes = $reflectedRouter->getMethod('getSchemes');
+        $reflectedGetSchemes->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedGetSchemes->invokeArgs($router, [
+            [],
+            $mockRequest,
+        ]);
+
+        $this->assertEquals([ $requestScheme ], $result);
+    }
+
     public function testGetSchemesReturnsOperationSchemes()
     {
         $swagger = [
@@ -1975,9 +2001,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
+        $mockUri = $this->createMock(Uri::class);
+        $mockUri->method('getScheme')
+            ->willReturn('overridden scheme');
+
         $mockRequest = $this->createMock(Request::class);
-        $mockRequest->expects($this->never())
-            ->method('getUri');
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
 
         $reflectedRouter = new ReflectionClass(Router::class);
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
@@ -2006,9 +2036,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
             'schemes' => [],
         ];
 
+        $mockUri = $this->createMock(Uri::class);
+        $mockUri->method('getScheme')
+            ->willReturn('overridden scheme');
+
         $mockRequest = $this->createMock(Request::class);
-        $mockRequest->expects($this->never())
-            ->method('getUri');
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
 
         $reflectedRouter = new ReflectionClass(Router::class);
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
@@ -2034,9 +2068,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
+        $mockUri = $this->createMock(Uri::class);
+        $mockUri->method('getScheme')
+            ->willReturn('overridden scheme');
+
         $mockRequest = $this->createMock(Request::class);
-        $mockRequest->expects($this->never())
-            ->method('getUri');
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
 
         $reflectedRouter = new ReflectionClass(Router::class);
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
@@ -2052,32 +2090,6 @@ class RouterTest extends PHPUnit_Framework_TestCase
         ]);
 
         $this->assertEquals($swagger['schemes'], $result);
-    }
-
-    public function testGetSchemesReturnsRequestSchemeAsDefault()
-    {
-        $requestScheme = 'http';
-
-        $mockUri = $this->createMock(Uri::class);
-        $mockUri->expects($this->once())
-            ->method('getScheme')
-            ->willReturn($requestScheme);
-        $mockRequest = $this->createMock(Request::class);
-        $mockRequest->expects($this->once())
-            ->method('getUri')
-            ->willReturn($mockUri);
-
-        $reflectedRouter = new ReflectionClass(Router::class);
-        $reflectedGetSchemes = $reflectedRouter->getMethod('getSchemes');
-        $reflectedGetSchemes->setAccessible(true);
-
-        $router = new Router([]);
-        $result = $reflectedGetSchemes->invokeArgs($router, [
-            [],
-            $mockRequest,
-        ]);
-
-        $this->assertEquals([ $requestScheme ], $result);
     }
 
     public function testGetProducesReturnsEmptyAsDefault()
