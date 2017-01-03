@@ -369,6 +369,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'getParameters',
                 'getProduces',
                 'getResponses',
+                'getSchemes',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -391,6 +392,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getResponses')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getSchemes')
             ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
@@ -577,6 +582,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'getParameters',
                 'getProduces',
                 'getResponses',
+                'getSchemes',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -599,6 +605,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getResponses')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getSchemes')
             ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
@@ -695,6 +705,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'getParameters',
                 'getProduces',
                 'getResponses',
+                'getSchemes',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -720,9 +731,137 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
+            ->method('getSchemes')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
             ->method('getSecurity')
             ->with(current($path)['get'])
             ->willReturn($security);
+        $router->expects($this->once())
+            ->method('hydrateParameterValues')
+            ->with(
+                $this->isInstanceOf(ParameterParser::class),
+                $mockRequest,
+                [],
+                key($path)
+            )
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('isDocumentationRoute')
+            ->with($mockRequest)
+            ->willReturn(false);
+        $router->expects($this->exactly(3))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ],
+                [ 'finished' ]
+            );
+        $router->expects($this->once())
+            ->method('matchPath')
+            ->with($mockRequest, key($path))
+            ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
+
+        $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
+
+        $result = $router($mockRequest, $mockResponse, $callback);
+
+        $this->assertSame($mockResponse, $result);
+    }
+
+    public function testInvokationReturnsSchemes()
+    {
+        $path = [
+            '/test-path' => [
+                'get' => [
+                    'description' => 'Some operation',
+                    'responses' => [],
+                ],
+            ],
+        ];
+
+        $schemes = [
+            'http',
+            'https',
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $mockUri = $this->createMock(Uri::class);
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('GET');
+        $mockRequest->expects($this->once())
+            ->method('withAttribute')
+            ->with('swagger', [
+                'apiPath' => key($path),
+                'path' => current($path),
+                'operation' => current($path)['get'],
+                'params' => [],
+                'security' => [],
+                'schemes' => $schemes,
+                'produces' => [],
+                'consumes' => [],
+                'responses' => [],
+            ])
+            ->will($this->returnSelf());
+
+        $mockResponse = $this->createMock(Response::class);
+
+        $callback = function ($request, $response) {
+            return $response;
+        };
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'getConsumes',
+                'getParameters',
+                'getProduces',
+                'getResponses',
+                'getSchemes',
+                'getSecurity',
+                'hydrateParameterValues',
+                'isDocumentationRoute',
+                'log',
+                'matchPath',
+                'resolveRefs',
+              ])
+            ->getMock();
+        $router->expects($this->once())
+            ->method('getConsumes')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getParameters')
+            ->with(current($path), current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getProduces')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getResponses')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getSchemes')
+            ->with(current($path)['get'])
+            ->willReturn($schemes);
+        $router->expects($this->once())
+            ->method('getSecurity')
+            ->with(current($path)['get'])
+            ->willReturn([]);
         $router->expects($this->once())
             ->method('hydrateParameterValues')
             ->with(
@@ -813,6 +952,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'getParameters',
                 'getProduces',
                 'getResponses',
+                'getSchemes',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -835,6 +975,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn($produces);
         $router->expects($this->once())
             ->method('getResponses')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getSchemes')
             ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
@@ -931,6 +1075,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'getParameters',
                 'getProduces',
                 'getResponses',
+                'getSchemes',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -953,6 +1098,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getResponses')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getSchemes')
             ->with(current($path)['get'])
             ->willReturn([]);
         $router->expects($this->once())
@@ -1049,6 +1198,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'getParameters',
                 'getProduces',
                 'getResponses',
+                'getSchemes',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -1073,6 +1223,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('getResponses')
             ->with(current($path)['get'])
             ->willReturn($responses);
+        $router->expects($this->once())
+            ->method('getSchemes')
+            ->with(current($path)['get'])
+            ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
             ->with(current($path)['get'])
