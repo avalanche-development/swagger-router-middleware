@@ -1961,6 +1961,90 @@ class RouterTest extends PHPUnit_Framework_TestCase
         ], $result);
     }
 
+    public function testGetSchemesReturnsEmptyAsDefault()
+    {
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedGetSchemes = $reflectedRouter->getMethod('getSchemes');
+        $reflectedGetSchemes->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedGetSchemes->invokeArgs($router, [[]]);
+
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetSchemesReturnsOperationSchemes()
+    {
+        $swagger = [
+            'schemes' => [
+                'overridden scheme',
+            ],
+        ];
+
+        $operation = [
+            'schemes' => [
+                'valid scheme',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetSchemes = $reflectedRouter->getMethod('getSchemes');
+        $reflectedGetSchemes->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetSchemes->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals($operation['schemes'], $result);
+    }
+
+    public function testGetSchemesReturnsEmptyWithOverride()
+    {
+        $swagger = [
+            'schemes' => [
+                'overridden scheme',
+            ],
+        ];
+        $operation = [
+            'schemes' => [],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetSchemes = $reflectedRouter->getMethod('getSchemes');
+        $reflectedGetSchemes->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetSchemes->invokeArgs($router, [ $operation ]);
+
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetSchemesReturnsGlobalSchemes()
+    {
+        $swagger = [
+            'schemes' => [
+                'valid scheme',
+            ],
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+        $reflectedGetSchemes = $reflectedRouter->getMethod('getSchemes');
+        $reflectedGetSchemes->setAccessible(true);
+
+        $router = new Router([]);
+        $reflectedSwagger->setValue($router, $swagger);
+        $result = $reflectedGetSchemes->invokeArgs($router, [[]]);
+
+        $this->assertEquals($swagger['schemes'], $result);
+    }
+
     public function testGetProducesReturnsEmptyAsDefault()
     {
         $reflectedRouter = new ReflectionClass(Router::class);
