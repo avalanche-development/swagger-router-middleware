@@ -38,10 +38,11 @@ Once everything passes through successfully, the $request object will have the f
     'path' => [ ... ], // full path definition
     'operation' => [ ... ], // specific operation definition
     'params' => [ ... ], // resolved list of parameters for this operation
-    'security' => [ ... ], // resolved list of securities for this operation
-    'produces' => [ ... ], // resolve list of producible types for this operation
-    'consumes' => [ ... ], // resolve list of consumable types for this operation
-    'responses' => [ ... ], // resolve list of responses for this operation
+    'security' => [ ... ], // resolved list of securities
+    'schemes' => [ ... ], // resolved list of schemes
+    'produces' => [ ... ], // resolved list of producible content types
+    'consumes' => [ ... ], // resolved list of consumable content types
+    'responses' => [ ... ], // resolved list of responses
 ]
 ```
 
