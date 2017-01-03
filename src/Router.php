@@ -86,7 +86,7 @@ class Router implements LoggerAwareInterface
         $parameters = $this->getParameters($pathItem, $operation);
         $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
         $security = $this->getSecurity($operation);
-        $schemes = $this->getSchemes($operation);
+        $schemes = $this->getSchemes($operation, $request);
         $produces = $this->getProduces($operation);
         $consumes = $this->getConsumes($operation);
         $responses = $this->getResponses($operation);
@@ -271,19 +271,21 @@ class Router implements LoggerAwareInterface
 
     /**
      * @param array $operation
+     * @param Request $request
      * @return array
      */
-    protected function getSchemes(array $operation)
+    protected function getSchemes(array $operation, Request $request)
     {
-        $schemes = [];
-
         if (array_key_exists('schemes', $operation)) {
             $schemes = $operation['schemes'];
         } elseif (isset($this->swagger['schemes'])) {
             $schemes = $this->swagger['schemes'];
+        } else {
+            $schemes = [
+                $request->getUri()->getScheme(),
+            ];
         }
 
-        // todo else pull from inbound request
         return $schemes;
     }
 

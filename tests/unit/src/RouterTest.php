@@ -396,7 +396,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSchemes')
-            ->with(current($path)['get'])
+            ->with(current($path)['get'], $mockRequest)
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
@@ -609,7 +609,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSchemes')
-            ->with(current($path)['get'])
+            ->with(current($path)['get'], $mockRequest)
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
@@ -732,7 +732,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSchemes')
-            ->with(current($path)['get'])
+            ->with(current($path)['get'], $mockRequest)
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
@@ -856,7 +856,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSchemes')
-            ->with(current($path)['get'])
+            ->with(current($path)['get'], $mockRequest)
             ->willReturn($schemes);
         $router->expects($this->once())
             ->method('getSecurity')
@@ -979,7 +979,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSchemes')
-            ->with(current($path)['get'])
+            ->with(current($path)['get'], $mockRequest)
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
@@ -1102,7 +1102,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSchemes')
-            ->with(current($path)['get'])
+            ->with(current($path)['get'], $mockRequest)
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
@@ -1225,7 +1225,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn($responses);
         $router->expects($this->once())
             ->method('getSchemes')
-            ->with(current($path)['get'])
+            ->with(current($path)['get'], $mockRequest)
             ->willReturn([]);
         $router->expects($this->once())
             ->method('getSecurity')
@@ -1961,18 +1961,6 @@ class RouterTest extends PHPUnit_Framework_TestCase
         ], $result);
     }
 
-    public function testGetSchemesReturnsEmptyAsDefault()
-    {
-        $reflectedRouter = new ReflectionClass(Router::class);
-        $reflectedGetSchemes = $reflectedRouter->getMethod('getSchemes');
-        $reflectedGetSchemes->setAccessible(true);
-
-        $router = new Router([]);
-        $result = $reflectedGetSchemes->invokeArgs($router, [[]]);
-
-        $this->assertEquals([], $result);
-    }
-
     public function testGetSchemesReturnsOperationSchemes()
     {
         $swagger = [
@@ -1987,6 +1975,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->expects($this->never())
+            ->method('getUri');
+
         $reflectedRouter = new ReflectionClass(Router::class);
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
@@ -1995,7 +1987,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $router = new Router([]);
         $reflectedSwagger->setValue($router, $swagger);
-        $result = $reflectedGetSchemes->invokeArgs($router, [ $operation ]);
+        $result = $reflectedGetSchemes->invokeArgs($router, [
+            $operation,
+            $mockRequest,
+        ]);
 
         $this->assertEquals($operation['schemes'], $result);
     }
@@ -2011,6 +2006,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             'schemes' => [],
         ];
 
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->expects($this->never())
+            ->method('getUri');
+
         $reflectedRouter = new ReflectionClass(Router::class);
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
@@ -2019,7 +2018,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $router = new Router([]);
         $reflectedSwagger->setValue($router, $swagger);
-        $result = $reflectedGetSchemes->invokeArgs($router, [ $operation ]);
+        $result = $reflectedGetSchemes->invokeArgs($router, [
+            $operation,
+            $mockRequest,
+        ]);
 
         $this->assertEquals([], $result);
     }
@@ -2032,6 +2034,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->expects($this->never())
+            ->method('getUri');
+
         $reflectedRouter = new ReflectionClass(Router::class);
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
@@ -2040,9 +2046,38 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $router = new Router([]);
         $reflectedSwagger->setValue($router, $swagger);
-        $result = $reflectedGetSchemes->invokeArgs($router, [[]]);
+        $result = $reflectedGetSchemes->invokeArgs($router, [
+            [],
+            $mockRequest,
+        ]);
 
         $this->assertEquals($swagger['schemes'], $result);
+    }
+
+    public function testGetSchemesReturnsRequestSchemeAsDefault()
+    {
+        $requestScheme = 'http';
+
+        $mockUri = $this->createMock(Uri::class);
+        $mockUri->expects($this->once())
+            ->method('getScheme')
+            ->willReturn($requestScheme);
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->expects($this->once())
+            ->method('getUri')
+            ->willReturn($mockUri);
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedGetSchemes = $reflectedRouter->getMethod('getSchemes');
+        $reflectedGetSchemes->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedGetSchemes->invokeArgs($router, [
+            [],
+            $mockRequest,
+        ]);
+
+        $this->assertEquals([ $requestScheme ], $result);
     }
 
     public function testGetProducesReturnsEmptyAsDefault()
