@@ -1,6 +1,6 @@
 <?php
 
-namespace AvalancheDevelopment\SwaggerRounterMiddleware;
+namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
 class ParsedSwagger implements ParsedSwaggerInterface
 {

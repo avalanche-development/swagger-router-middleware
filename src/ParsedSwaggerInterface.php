@@ -1,6 +1,6 @@
 <?php
 
-namespace AvalancheDevelopment\SwaggerRounterMiddleware;
+namespace AvalancheDevelopment\SwaggerRouterMiddleware;
 
 interface ParsedSwaggerInterface
 {
@@ -23,7 +23,7 @@ interface ParsedSwaggerInterface
     /**
      * @return array
      */
-    public function getParameters();
+    public function getParams();
 
     /**
      * @return array
