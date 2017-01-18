@@ -4,6 +4,7 @@ namespace AvalancheDevelopment\SwaggerRounterMiddleware;
 
 interface ParsedSwaggerInterface
 {
+
     /**
      * @return string
      */
