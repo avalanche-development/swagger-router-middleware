@@ -83,25 +83,22 @@ class Router implements LoggerAwareInterface
         $this->log("request matched with {$route}");
         $operation = $pathItem[$method];
 
+        $parsedSwagger = $this->getParsedSwagger();
+        $parsedSwagger->setApiPath($route);
+        $parsedSwagger->setPath($pathItem);
+        $parsedSwagger->setOperation($operation);
+
         $parameters = $this->getParameters($pathItem, $operation);
         $parameters = $this->hydrateParameterValues(new ParameterParser, $request, $parameters, $route);
-        $security = $this->getSecurity($operation);
-        $schemes = $this->getSchemes($operation, $request);
-        $produces = $this->getProduces($operation);
-        $consumes = $this->getConsumes($operation);
-        $responses = $this->getResponses($operation);
+        $parsedSwagger->setParams($parameters);
 
-        $request = $request->withAttribute('swagger', [
-            'apiPath' => $route,
-            'path' => $pathItem,
-            'operation' => $operation,
-            'params' => $parameters,
-            'security' => $security,
-            'schemes' => $schemes,
-            'produces' => $produces,
-            'consumes' => $consumes,
-            'responses' => $responses,
-        ]);
+        $parsedSwagger->setSecurity($this->getSecurity($operation));
+        $parsedSwagger->setSchemes($this->getSchemes($operation, $request));
+        $parsedSwagger->setProduces($this->getProduces($operation));
+        $parsedSwagger->setConsumes($this->getConsumes($operation));
+        $parsedSwagger->setResponses($this->getResponses($operation));
+
+        $request = $request->withAttribute('swagger', $parsedSwagger);
 
         $this->log('finished');
         return $next($request, $response);
@@ -185,6 +182,14 @@ class Router implements LoggerAwareInterface
             $referencedObject = $referencedObject[$referencePiece];
         }
         return $referencedObject;
+    }
+
+    /**
+     * @return ParsedSwagger
+     */
+    protected function getParsedSwagger()
+    {
+        return new ParsedSwagger;
     }
 
     /**
