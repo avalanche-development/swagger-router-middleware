@@ -334,6 +334,17 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockParsedSwagger = $this->createMock(ParsedSwagger::class);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setApiPath')
+            ->with(key($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setPath')
+            ->with(current($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setOperation')
+            ->with(current($path)['get']);
+
         $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
         $mockRequest->method('getUri')
@@ -343,17 +354,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn('GET');
         $mockRequest->expects($this->once())
             ->method('withAttribute')
-            ->with('swagger', [
-                'apiPath' => key($path),
-                'path' => current($path),
-                'operation' => current($path)['get'],
-                'params' => [],
-                'security' => [],
-                'schemes' => [],
-                'produces' => [],
-                'consumes' => [],
-                'responses' => [],
-            ])
+            ->with('swagger', $mockParsedSwagger)
             ->will($this->returnSelf());
 
         $mockResponse = $this->createMock(Response::class);
@@ -367,6 +368,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->setMethods([
                 'getConsumes',
                 'getParameters',
+                'getParsedSwagger',
                 'getProduces',
                 'getResponses',
                 'getSchemes',
@@ -382,6 +384,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('getConsumes')
             ->with(current($path)['get'])
             ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getParsedSwagger')
+            ->willReturn($mockParsedSwagger);
         $router->expects($this->once())
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
@@ -457,6 +462,17 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockParsedSwagger = $this->createMock(ParsedSwagger::class);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setApiPath')
+            ->with(key($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setPath')
+            ->with(current($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setOperation')
+            ->with(current($path)['get']);
+
         $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
         $mockRequest->method('getUri')
@@ -477,6 +493,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods([
                 'getParameters',
+                'getParsedSwagger',
                 'getSecurity',
                 'hydrateParameterValues',
                 'isDocumentationRoute',
@@ -492,6 +509,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 current($path)['get']
             )
             ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getParsedSwagger')
+            ->willReturn($mockParsedSwagger);
         $router->expects($this->never())
             ->method('getSecurity');
         $router->expects($this->once())
@@ -547,6 +567,20 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockParsedSwagger = $this->createMock(ParsedSwagger::class);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setApiPath')
+            ->with(key($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setPath')
+            ->with(current($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setOperation')
+            ->with(current($path)['get']);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setParams')
+            ->with([ $parameter ]);
+
         $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
         $mockRequest->method('getUri')
@@ -556,17 +590,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn('GET');
         $mockRequest->expects($this->once())
             ->method('withAttribute')
-            ->with('swagger', [
-                'apiPath' => key($path),
-                'path' => current($path),
-                'operation' => current($path)['get'],
-                'params' => [ $parameter ],
-                'security' => [],
-                'schemes' => [],
-                'produces' => [],
-                'consumes' => [],
-                'responses' => [],
-            ])
+            ->with('swagger', $mockParsedSwagger)
             ->will($this->returnSelf());
 
         $mockResponse = $this->createMock(Response::class);
@@ -580,6 +604,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->setMethods([
                 'getConsumes',
                 'getParameters',
+                'getParsedSwagger',
                 'getProduces',
                 'getResponses',
                 'getSchemes',
@@ -599,6 +624,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
             ->willReturn([ $parameter ]);
+        $router->expects($this->once())
+            ->method('getParsedSwagger')
+            ->willReturn($mockParsedSwagger);
         $router->expects($this->once())
             ->method('getProduces')
             ->with(current($path)['get'])
@@ -670,6 +698,20 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockParsedSwagger = $this->createMock(ParsedSwagger::class);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setApiPath')
+            ->with(key($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setPath')
+            ->with(current($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setOperation')
+            ->with(current($path)['get']);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setSecurity')
+            ->with($security);
+
         $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
         $mockRequest->method('getUri')
@@ -679,17 +721,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn('GET');
         $mockRequest->expects($this->once())
             ->method('withAttribute')
-            ->with('swagger', [
-                'apiPath' => key($path),
-                'path' => current($path),
-                'operation' => current($path)['get'],
-                'params' => [],
-                'security' => $security,
-                'schemes' => [],
-                'produces' => [],
-                'consumes' => [],
-                'responses' => [],
-            ])
+            ->with('swagger', $mockParsedSwagger)
             ->will($this->returnSelf());
 
         $mockResponse = $this->createMock(Response::class);
@@ -703,6 +735,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->setMethods([
                 'getConsumes',
                 'getParameters',
+                'getParsedSwagger',
                 'getProduces',
                 'getResponses',
                 'getSchemes',
@@ -722,6 +755,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
             ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getParsedSwagger')
+            ->willReturn($mockParsedSwagger);
         $router->expects($this->once())
             ->method('getProduces')
             ->with(current($path)['get'])
@@ -794,6 +830,20 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockParsedSwagger = $this->createMock(ParsedSwagger::class);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setApiPath')
+            ->with(key($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setPath')
+            ->with(current($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setOperation')
+            ->with(current($path)['get']);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setSchemes')
+            ->with($schemes);
+
         $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
         $mockRequest->method('getUri')
@@ -803,17 +853,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn('GET');
         $mockRequest->expects($this->once())
             ->method('withAttribute')
-            ->with('swagger', [
-                'apiPath' => key($path),
-                'path' => current($path),
-                'operation' => current($path)['get'],
-                'params' => [],
-                'security' => [],
-                'schemes' => $schemes,
-                'produces' => [],
-                'consumes' => [],
-                'responses' => [],
-            ])
+            ->with('swagger', $mockParsedSwagger)
             ->will($this->returnSelf());
 
         $mockResponse = $this->createMock(Response::class);
@@ -827,6 +867,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->setMethods([
                 'getConsumes',
                 'getParameters',
+                'getParsedSwagger',
                 'getProduces',
                 'getResponses',
                 'getSchemes',
@@ -846,6 +887,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
             ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getParsedSwagger')
+            ->willReturn($mockParsedSwagger);
         $router->expects($this->once())
             ->method('getProduces')
             ->with(current($path)['get'])
@@ -917,6 +961,20 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockParsedSwagger = $this->createMock(ParsedSwagger::class);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setApiPath')
+            ->with(key($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setPath')
+            ->with(current($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setOperation')
+            ->with(current($path)['get']);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setProduces')
+            ->with($produces);
+
         $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
         $mockRequest->method('getUri')
@@ -926,17 +984,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn('GET');
         $mockRequest->expects($this->once())
             ->method('withAttribute')
-            ->with('swagger', [
-                'apiPath' => key($path),
-                'path' => current($path),
-                'operation' => current($path)['get'],
-                'params' => [],
-                'security' => [],
-                'schemes' => [],
-                'produces' => $produces,
-                'consumes' => [],
-                'responses' => [],
-            ])
+            ->with('swagger', $mockParsedSwagger)
             ->will($this->returnSelf());
 
         $mockResponse = $this->createMock(Response::class);
@@ -950,6 +998,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->setMethods([
                 'getConsumes',
                 'getParameters',
+                'getParsedSwagger',
                 'getProduces',
                 'getResponses',
                 'getSchemes',
@@ -969,6 +1018,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
             ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getParsedSwagger')
+            ->willReturn($mockParsedSwagger);
         $router->expects($this->once())
             ->method('getProduces')
             ->with(current($path)['get'])
@@ -1040,6 +1092,20 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockParsedSwagger = $this->createMock(ParsedSwagger::class);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setApiPath')
+            ->with(key($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setPath')
+            ->with(current($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setOperation')
+            ->with(current($path)['get']);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setConsumes')
+            ->with($consumes);
+
         $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
         $mockRequest->method('getUri')
@@ -1049,17 +1115,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn('GET');
         $mockRequest->expects($this->once())
             ->method('withAttribute')
-            ->with('swagger', [
-                'apiPath' => key($path),
-                'path' => current($path),
-                'operation' => current($path)['get'],
-                'params' => [],
-                'security' => [],
-                'schemes' => [],
-                'produces' => [],
-                'consumes' => $consumes,
-                'responses' => [],
-            ])
+            ->with('swagger', $mockParsedSwagger)
             ->will($this->returnSelf());
 
         $mockResponse = $this->createMock(Response::class);
@@ -1073,6 +1129,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->setMethods([
                 'getConsumes',
                 'getParameters',
+                'getParsedSwagger',
                 'getProduces',
                 'getResponses',
                 'getSchemes',
@@ -1092,6 +1149,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
             ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getParsedSwagger')
+            ->willReturn($mockParsedSwagger);
         $router->expects($this->once())
             ->method('getProduces')
             ->with(current($path)['get'])
@@ -1163,6 +1223,20 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $reflectedSwagger = $reflectedRouter->getProperty('swagger');
         $reflectedSwagger->setAccessible(true);
 
+        $mockParsedSwagger = $this->createMock(ParsedSwagger::class);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setApiPath')
+            ->with(key($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setPath')
+            ->with(current($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setOperation')
+            ->with(current($path)['get']);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setResponses')
+            ->with($responses);
+
         $mockUri = $this->createMock(Uri::class);
         $mockRequest = $this->createMock(Request::class);
         $mockRequest->method('getUri')
@@ -1172,17 +1246,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->willReturn('GET');
         $mockRequest->expects($this->once())
             ->method('withAttribute')
-            ->with('swagger', [
-                'apiPath' => key($path),
-                'path' => current($path),
-                'operation' => current($path)['get'],
-                'params' => [],
-                'security' => [],
-                'schemes' => [],
-                'produces' => [],
-                'consumes' => [],
-                'responses' => $responses,
-            ])
+            ->with('swagger', $mockParsedSwagger)
             ->will($this->returnSelf());
 
         $mockResponse = $this->createMock(Response::class);
@@ -1196,6 +1260,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->setMethods([
                 'getConsumes',
                 'getParameters',
+                'getParsedSwagger',
                 'getProduces',
                 'getResponses',
                 'getSchemes',
@@ -1215,6 +1280,9 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->method('getParameters')
             ->with(current($path), current($path)['get'])
             ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getParsedSwagger')
+            ->willReturn($mockParsedSwagger);
         $router->expects($this->once())
             ->method('getProduces')
             ->with(current($path)['get'])
@@ -1625,6 +1693,18 @@ class RouterTest extends PHPUnit_Framework_TestCase
         );
 
         $this->assertEquals($referencedObject, $result);
+    }
+
+    public function testGetParsedSwaggerReturnsParsedSwagger()
+    {
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedGetParsedSwagger = $reflectedRouter->getMethod('getParsedSwagger');
+        $reflectedGetParsedSwagger->setAccessible(true);
+
+        $router = new Router([]);
+        $result = $reflectedGetParsedSwagger->invoke($router);
+
+        $this->assertInstanceOf(ParsedSwagger::class, $result);
     }
 
     public function testGetParametersHandlesNoParameters()
