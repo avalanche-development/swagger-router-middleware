@@ -58,9 +58,9 @@ There is some routing being done here. If the request route cannot be found in s
 
 ### Parameter Parsing
 
-The middleware will do it's best to parse out the parameters for the request without too much validation. It loops through the swagger definition, looking for the parameters that are applicable for the route, and pull them from header/query/path/etc. Parameters will be cast to their defined type (most notable, date and date-time will be cast into DateTime objects). If there is an issue on this step (like, an object cannot be parsed or a date is invalid) this is where that BadRequest will be thrown.
+The middleware will do it's best to parse out the parameters for the request without too much validation. It loops through the swagger definition, looking for the parameters that are applicable for the route, and pull them from header/query/path/etc.
 
-Again, this middleware will not check the existence or validity of parameters based on the spec. It only tries to pull and format it and expects something else in the stack to verify integrity.
+Again, this middleware will not check the existence, validity, or type of parameters based on the spec. It only tries to pull and expects something else in the stack to verify integrity.
 
 ## Development
 
