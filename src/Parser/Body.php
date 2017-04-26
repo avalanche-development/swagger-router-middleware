@@ -28,12 +28,22 @@ class Body implements ParserInterface
             return;
         }
 
-        $header = $this->request->getHeader('Content-Type');
-        if (preg_match('/application\/json/i', $header) > 0) {
+        $headers = $this->request->getHeader('Content-Type');
+        $jsonHeaders = array_filter($headers, [ $this, 'checkJsonHeader' ]);
+        if (count($jsonHeaders) > 0) {
             return $this->parseJson($body);
         }
 
         return $body;
+    }
+
+    /**
+     * @param string $header
+     * @return boolean
+     */
+    protected function checkJsonHeader($header)
+    {
+        return preg_match('/application\/json/i', $header) > 0;
     }
 
     /**
@@ -46,6 +56,7 @@ class Body implements ParserInterface
         if (json_last_error() !== JSON_ERROR_NONE) {
             return;
         }
+
         return $parsedBody;
     }
 }

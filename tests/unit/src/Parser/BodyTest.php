@@ -34,7 +34,7 @@ class BodyTest extends PHPUnit_Framework_TestCase
             ->willReturn(123);
         $mockRequest->method('getHeader')
             ->with('Content-Type')
-            ->willReturn(null);
+            ->willReturn([]);
 
         $reflectedBodyParser = new ReflectionClass(Body::class);
         $reflectedRequest = $reflectedBodyParser->getProperty('request');
@@ -43,9 +43,12 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $bodyParser = $this->getMockBuilder(Body::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'checkJsonHeader',
                 'parseJson',
             ])
             ->getMock();
+        $bodyParser->expects($this->never())
+            ->method('checkJsonHeader');
         $bodyParser->expects($this->never())
             ->method('parseJson');
 
