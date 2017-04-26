@@ -27,11 +27,14 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $this->assertAttributeSame($mockRequest, 'request', $bodyParser);
     }
 
-    public function testGetValueReturnsString()
+    public function testGetValueReturnsStringIfContentUnspecified()
     {
         $mockRequest = $this->createMock(RequestInterface::class);
         $mockRequest->method('getBody')
             ->willReturn(123);
+        $mockRequest->method('getHeader')
+            ->with('Content-Type')
+            ->willReturn(null);
 
         $reflectedBodyParser = new ReflectionClass(Body::class);
         $reflectedRequest = $reflectedBodyParser->getProperty('request');
@@ -39,8 +42,12 @@ class BodyTest extends PHPUnit_Framework_TestCase
 
         $bodyParser = $this->getMockBuilder(Body::class)
             ->disableOriginalConstructor()
-            ->setMethods(null)
+            ->setMethods([
+                'parseJson',
+            ])
             ->getMock();
+        $bodyParser->expects($this->never())
+            ->method('parseJson');
 
         $reflectedRequest->setValue($bodyParser, $mockRequest);
 

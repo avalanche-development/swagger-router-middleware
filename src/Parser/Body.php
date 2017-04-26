@@ -23,8 +23,29 @@ class Body implements ParserInterface
      */
     public function getValue()
     {
-        // @todo should return null
         $body = (string) $this->request->getBody();
+        if (empty($body)) {
+            return;
+        }
+
+        $header = $this->request->getHeader('Content-Type');
+        if (preg_match('/application\/json/i', $header) > 0) {
+            return $this->parseJson($body);
+        }
+
         return $body;
+    }
+
+    /**
+     * @param string $body
+     * @return mixed
+     */
+    protected function parseJson($body)
+    {
+        $parsedBody = json_decode($body, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return;
+        }
+        return $parsedBody;
     }
 }
