@@ -100,8 +100,11 @@ class Router implements LoggerAwareInterface
 
         $request = $request->withAttribute('swagger', $parsedSwagger);
 
-        $this->log('finished');
-        return $next($request, $response);
+        $result = $next($request, $response);
+        $result = $this->encodeResponse($request, $response);
+
+        $this->log("finished");
+        return $result;
     }
 
     /**
@@ -341,6 +344,16 @@ class Router implements LoggerAwareInterface
         }
 
         return $responses;
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @return $response
+     */
+    protected function encodeResponse(Request $request, Response $response)
+    {
+        return $response;
     }
 
     /**

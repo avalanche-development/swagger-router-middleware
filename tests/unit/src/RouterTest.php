@@ -366,6 +366,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'encodeResponse',
                 'getConsumes',
                 'getParameters',
                 'getParsedSwagger',
@@ -380,6 +381,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'resolveRefs',
             ])
             ->getMock();
+        $router->expects($this->once())
+            ->method('encodeResponse')
+            ->with($mockRequest, $mockResponse)
+            ->willReturn($mockResponse);
         $router->expects($this->once())
             ->method('getConsumes')
             ->with(current($path)['get'])
@@ -602,6 +607,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'encodeResponse',
                 'getConsumes',
                 'getParameters',
                 'getParsedSwagger',
@@ -616,6 +622,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'resolveRefs',
               ])
             ->getMock();
+        $router->expects($this->once())
+            ->method('encodeResponse')
+            ->with($mockRequest, $mockResponse)
+            ->willReturn($mockResponse);
         $router->expects($this->once())
             ->method('getConsumes')
             ->with(current($path)['get'])
@@ -733,6 +743,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'encodeResponse',
                 'getConsumes',
                 'getParameters',
                 'getParsedSwagger',
@@ -747,6 +758,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'resolveRefs',
               ])
             ->getMock();
+        $router->expects($this->once())
+            ->method('encodeResponse')
+            ->with($mockRequest, $mockResponse)
+            ->willReturn($mockResponse);
         $router->expects($this->once())
             ->method('getConsumes')
             ->with(current($path)['get'])
@@ -865,6 +880,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'encodeResponse',
                 'getConsumes',
                 'getParameters',
                 'getParsedSwagger',
@@ -879,6 +895,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'resolveRefs',
               ])
             ->getMock();
+        $router->expects($this->once())
+            ->method('encodeResponse')
+            ->with($mockRequest, $mockResponse)
+            ->willReturn($mockResponse);
         $router->expects($this->once())
             ->method('getConsumes')
             ->with(current($path)['get'])
@@ -996,6 +1016,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'encodeResponse',
                 'getConsumes',
                 'getParameters',
                 'getParsedSwagger',
@@ -1010,6 +1031,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'resolveRefs',
               ])
             ->getMock();
+        $router->expects($this->once())
+            ->method('encodeResponse')
+            ->with($mockRequest, $mockResponse)
+            ->willReturn($mockResponse);
         $router->expects($this->once())
             ->method('getConsumes')
             ->with(current($path)['get'])
@@ -1127,6 +1152,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'encodeResponse',
                 'getConsumes',
                 'getParameters',
                 'getParsedSwagger',
@@ -1141,6 +1167,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'resolveRefs',
               ])
             ->getMock();
+        $router->expects($this->once())
+            ->method('encodeResponse')
+            ->with($mockRequest, $mockResponse)
+            ->willReturn($mockResponse);
         $router->expects($this->once())
             ->method('getConsumes')
             ->with(current($path)['get'])
@@ -1204,7 +1234,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $this->assertSame($mockResponse, $result);
     }
 
-    public function testInvokationReturnsResponses()
+    public function testInvokationReturnsResponseFromEncode()
     {
         $path = [
             '/test-path' => [
@@ -1258,6 +1288,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = $this->getMockBuilder(Router::class)
             ->disableOriginalConstructor()
             ->setMethods([
+                'encodeResponse',
                 'getConsumes',
                 'getParameters',
                 'getParsedSwagger',
@@ -1272,6 +1303,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
                 'resolveRefs',
               ])
             ->getMock();
+        $router->expects($this->once())
+            ->method('encodeResponse')
+            ->with($mockRequest, $mockResponse)
+            ->willReturn($mockResponse);
         $router->expects($this->once())
             ->method('getConsumes')
             ->with(current($path)['get'])
