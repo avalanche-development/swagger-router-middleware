@@ -353,6 +353,9 @@ class Router implements LoggerAwareInterface
      */
     protected function encodeResponse(Request $request, Response $response)
     {
+        // php response interface only accepts streaminterface to be passed around in body
+        // so we may need to keep encoding in app controller
+        // but that's stinky, would be much nicer if an array was passed on so this could do yaml/json/xml
         return $response;
     }
 
