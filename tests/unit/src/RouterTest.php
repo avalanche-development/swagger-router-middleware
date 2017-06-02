@@ -1234,7 +1234,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $this->assertSame($mockResponse, $result);
     }
 
-    public function testInvokationReturnsResponseFromEncode()
+    public function testInvokationReturnsResponseFromCallable()
     {
         $path = [
             '/test-path' => [
@@ -1280,9 +1280,10 @@ class RouterTest extends PHPUnit_Framework_TestCase
             ->will($this->returnSelf());
 
         $mockResponse = $this->createMock(Response::class);
+        $mockCallbackResponse = $this->createMock(Response::class);
 
-        $callback = function ($request, $response) {
-            return $response;
+        $callback = function ($request, $response) use ($mockCallbackResponse) {
+            return $mockCallbackResponse;
         };
 
         $router = $this->getMockBuilder(Router::class)
@@ -1306,7 +1307,7 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router->expects($this->once())
             ->method('encodeResponse')
             ->with($mockRequest, $mockResponse)
-            ->willReturn($mockResponse);
+            ->will($this->returnArgument(1));
         $router->expects($this->once())
             ->method('getConsumes')
             ->with(current($path)['get'])
@@ -1367,7 +1368,144 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
         $result = $router($mockRequest, $mockResponse, $callback);
 
-        $this->assertSame($mockResponse, $result);
+        $this->assertSame($mockCallbackResponse, $result);
+    }
+
+    public function testInvokationReturnsResponseFromEncode()
+    {
+        $path = [
+            '/test-path' => [
+                'get' => [
+                    'description' => 'Some operation',
+                    'responses' => [],
+                ],
+            ],
+        ];
+
+        $responses = [
+            'some response objects',
+        ];
+
+        $reflectedRouter = new ReflectionClass(Router::class);
+        $reflectedSwagger = $reflectedRouter->getProperty('swagger');
+        $reflectedSwagger->setAccessible(true);
+
+        $mockParsedSwagger = $this->createMock(ParsedSwagger::class);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setApiPath')
+            ->with(key($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setPath')
+            ->with(current($path));
+        $mockParsedSwagger->expects($this->once())
+            ->method('setOperation')
+            ->with(current($path)['get']);
+        $mockParsedSwagger->expects($this->once())
+            ->method('setResponses')
+            ->with($responses);
+
+        $mockUri = $this->createMock(Uri::class);
+        $mockRequest = $this->createMock(Request::class);
+        $mockRequest->method('getUri')
+            ->willReturn($mockUri);
+        $mockRequest->expects($this->once())
+            ->method('getMethod')
+            ->willReturn('GET');
+        $mockRequest->expects($this->once())
+            ->method('withAttribute')
+            ->with('swagger', $mockParsedSwagger)
+            ->will($this->returnSelf());
+
+        $mockResponse = $this->createMock(Response::class);
+        $mockEncodedResponse = $this->createMock(Response::class);
+
+        $callback = function ($request, $response) {
+            return $response;
+        };
+
+        $router = $this->getMockBuilder(Router::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'encodeResponse',
+                'getConsumes',
+                'getParameters',
+                'getParsedSwagger',
+                'getProduces',
+                'getResponses',
+                'getSchemes',
+                'getSecurity',
+                'hydrateParameterValues',
+                'isDocumentationRoute',
+                'log',
+                'matchPath',
+                'resolveRefs',
+              ])
+            ->getMock();
+        $router->expects($this->once())
+            ->method('encodeResponse')
+            ->with($mockRequest, $mockResponse)
+            ->willReturn($mockEncodedResponse);
+        $router->expects($this->once())
+            ->method('getConsumes')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getParameters')
+            ->with(current($path), current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getParsedSwagger')
+            ->willReturn($mockParsedSwagger);
+        $router->expects($this->once())
+            ->method('getProduces')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getResponses')
+            ->with(current($path)['get'])
+            ->willReturn($responses);
+        $router->expects($this->once())
+            ->method('getSchemes')
+            ->with(current($path)['get'], $mockRequest)
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('getSecurity')
+            ->with(current($path)['get'])
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('hydrateParameterValues')
+            ->with(
+                $this->isInstanceOf(ParameterParser::class),
+                $mockRequest,
+                [],
+                key($path)
+            )
+            ->willReturn([]);
+        $router->expects($this->once())
+            ->method('isDocumentationRoute')
+            ->with($mockRequest)
+            ->willReturn(false);
+        $router->expects($this->exactly(3))
+            ->method('log')
+            ->withConsecutive(
+                [ 'start' ],
+                [ 'request matched with /test-path' ],
+                [ 'finished' ]
+            );
+        $router->expects($this->once())
+            ->method('matchPath')
+            ->with($mockRequest, key($path))
+            ->willReturn(true);
+        $router->expects($this->once())
+            ->method('resolveRefs')
+            ->with(current($path))
+            ->will($this->returnArgument(0));
+
+        $reflectedSwagger->setValue($router, [ 'paths' => $path ]);
+
+        $result = $router($mockRequest, $mockResponse, $callback);
+
+        $this->assertSame($mockEncodedResponse, $result);
     }
 
     public function testIsDocumentationRouteFailsIfNotGet()
